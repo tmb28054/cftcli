@@ -42,17 +42,17 @@ with open('README.md', encoding='utf8') as readme_handler:
 setup_options = dict(
     name=NAME,
     version=get_changelog(),
-    description='Authentication Utility for a bastion AWS account paradigm',
+    description='CloudFormation Cli',
     long_description=README,
     author='Topaz Bott',
     author_email='topaz@topazhome.net',
+    url='https://github.com/tmb28054/cftcli',
     scripts=[],
     package_data={
         NAME: []
     },
     entry_points={
         'console_scripts': [
-            'assume-role = cftcli.assume_role:_main',
             'cfdeploy = cftcli.deploy:_main',
             'create-stack = cftcli.deploy:_main',
             'deploy-stack = cftcli.deploy:_main',
