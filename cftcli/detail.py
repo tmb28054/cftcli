@@ -68,11 +68,7 @@ def _options() -> object:
             argparse parser object.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--stack', '-s',
-                        dest='stackname',
-                        required=True,
-                        default=os.getenv('STACKNAME', CACHE.get('stackname', '')),
-                        help='The Stack Name to use.')
+    parser.add_argument('stacks', nargs='*', help='What stacks to view')
     parser.add_argument('--profile', '-p',
                         required=False,
                         dest='profile',
@@ -120,6 +116,90 @@ def _get_events(stackname:str) -> dict:
     return events
 
 
+def _get_resources(stackname:str) -> dict:
+    """
+        I generate a list of resources for a stack
+
+        Args
+            stackname: string of the stackname
+
+        Returns
+            dict of the resources
+            {
+                LogicalResourceId: resource-record
+            }
+    """
+    response = CLOUDFORMATION.describe_stack_resources(
+        StackName=stackname
+    )
+    resources = {}
+    while True:
+        for resource in response['StackResources']:
+            name = resource['LogicalResourceId']
+            if name not in resources or resource['Timestamp'] > resource[name]['Timestamp']:
+                resources[name] = resource
+        if not response.get('NextToken', False):
+            break
+        response = CLOUDFORMATION.describe_stack_resources(
+            StackName=stackname,
+            NextToken=response['NextToken']
+        )
+    return resources
+
+
+def _disply_resources(resources:dict) -> str:
+    """
+        I display a list of resources for a stack.
+
+        Args
+            stackname: dict of the resources
+    """
+    display_keys = [
+        'LogicalResourceId',
+        'PhysicalResourceId',
+        'ResourceType',
+        'Timestamp',
+        'ResourceStatus',
+        'ResourceStatusReason',
+        'Description',
+    ]
+    detail = []
+    header = []
+    for name, resource in resources.items():
+        record = []
+        if resource['ResourceStatus'] == 'DELETE_COMPLETE':
+            continue
+        for key, value in resource.items():
+            if key not in display_keys:
+                continue
+            value = str(value)
+            if not detail:
+                header += [key]
+            if key == 'LogicalResourceId':
+                value = colored(value, attrs=['bold'])
+            elif key == 'ResourceStatus':
+                color = 'green'
+                if 'PROGRESS' in value:
+                    color = 'blue'
+                elif 'FAIL' in value:
+                    color = 'red'
+                value = colored(value, color)
+            elif len(value) > 20:
+                value = textwrap.fill(value, 20)
+            record.append(value)
+        detail.append(record)
+    LOG.debug(json.dumps(detail, indent=2, default=str))
+    print('\n')
+    print(colored('Resources', 'green', attrs=['bold']))
+    print(
+        tabulate(
+            detail,
+            header,
+            tablefmt="grid"
+        )
+    )
+
+
 def _display_events(stackname:str) -> str:
     """
         I print a table of the cloudformation events for a stack
@@ -135,6 +215,7 @@ def _display_events(stackname:str) -> str:
     display_keys = ['LogicalResourceId', 'PhysicalResourceId', 'ResourceType',
                     'Timestamp', 'ResourceStatus', 'ResourceStatusReason',
                     'ResourceProperties']
+    resources = _get_resources(stackname)
     for _, event in _get_events(stackname).items():
         event_detail = []
         if event['ResourceStatus'] == 'DELETE_COMPLETE':
@@ -159,7 +240,7 @@ def _display_events(stackname:str) -> str:
             event_detail.append(value)
         detail.append(event_detail)
     LOG.debug(json.dumps(detail, indent=2, default=str))
-    print('Events')
+    print('\nEvents')
     print(
         tabulate(
             detail,
@@ -167,24 +248,18 @@ def _display_events(stackname:str) -> str:
             tablefmt="grid"
         )
     )
+    _disply_resources(resources)
 
 
-def _main() -> None:
-    """ main
+def _display_stack(stackname) -> None:
     """
-    args = _options()
+        I display the stack data
 
-    set_level(args.verbosity)
-    logging.getLogger().setLevel(logging.DEBUG)
-
-    if args.profile:
-        boto3.setup_default_session(profile_name=args.profile)
-        global CLOUDFORMATION  # pylint: disable=global-statement
-        CLOUDFORMATION = boto3.client('cloudformation')
-
-    # blarg
+        Args:
+            stackname: the stackname to display
+    """
     detail = []
-    response = CLOUDFORMATION.describe_stacks(StackName=args.stackname)
+    response = CLOUDFORMATION.describe_stacks(StackName=stackname)
     for key, value in response['Stacks'][0].items():
         if not value:
             continue
@@ -212,7 +287,42 @@ def _main() -> None:
             tablefmt="grid"
         )
     )
-    _display_events(args.stackname)
+    _display_events(stackname)
+
+
+def _main() -> None:
+    """ main
+    """
+    args = _options()
+
+    set_level(args.verbosity)
+    logging.getLogger().setLevel(logging.DEBUG)
+
+    stacks = args.stacks
+    if not stacks:
+        stacks = CACHE.get('stacks', [])
+
+        if not stacks:
+            stack = CACHE.get('stackname', '')
+            if not stack:
+                print('A StackName is required')
+                sys.exit(1)
+            stacks = [stack]
+
+        stacks = json.loads(stacks)
+
+    if args.profile:
+        boto3.setup_default_session(profile_name=args.profile)
+        global CLOUDFORMATION  # pylint: disable=global-statement
+        CLOUDFORMATION = boto3.client('cloudformation')
+
+    for stack in stacks:
+        _display_stack(stack)
+
+    CACHE.add('stacks', json.dumps(stacks), CACHETIME)
+    CACHE.add('region', args.region, CACHETIME)
+    if args.profile:
+        CACHE.add('profile', args.profile, CACHETIME)
 
 
 if __name__ == '__main__':
