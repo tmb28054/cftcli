@@ -48,6 +48,7 @@ setup_options = dict(
     author_email='topaz@topazhome.net',
     url='https://github.com/tmb28054/cftcli',
     scripts=[],
+    license="Apache License 2.0",
     package_data={
         NAME: []
     },

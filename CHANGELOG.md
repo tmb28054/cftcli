@@ -1,5 +1,13 @@
 # Changelog for the CloudFormation Template CLI
 
+## [2.0.0] - 2022-06-09
+### Update
+- Updated the licends
+
+## [1.1.1] - 2022-06-07
+### Fix
+- Updated stack detail to infer the stack
+
 ## [1.1.0] - 2022-06-07
 ### Added
 - Display of the Resources for the stack
