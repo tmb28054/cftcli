@@ -235,10 +235,8 @@ def wait_for_stack(stackname:str) -> None:
             stackanme: string of the stackname.
     """
     state = get_stack_state(stackname)
-    final_states = ['COMPLETE', 'FAILED']
     while True:
-
-        if any(x in state for x in final_states):
+        if not 'IN_PROGRESS' in state:
             break
 
         spinner_text = f'{stackname} is {state}'

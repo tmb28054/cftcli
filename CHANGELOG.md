@@ -1,5 +1,9 @@
 # Changelog for the CloudFormation Template CLI
 
+## [2.0.1] - 2022-06-11
+### fix
+- Fixed deploy bug,
+
 ## [2.0.0] - 2022-06-09
 ### Update
 - Updated the licends
