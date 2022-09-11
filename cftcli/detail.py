@@ -12,11 +12,16 @@ import os
 import sys
 
 
-import boto3
-import diskcache
 import textwrap
+
+
 from tabulate import tabulate
 from termcolor import colored
+
+
+import boto3
+import diskcache
+
 
 LOG = logging.getLogger()
 TIME_DELAY = 3
@@ -165,7 +170,7 @@ def _disply_resources(resources:dict) -> str:
     ]
     detail = []
     header = []
-    for name, resource in resources.items():
+    for _, resource in resources.items():
         record = []
         if resource['ResourceStatus'] == 'DELETE_COMPLETE':
             continue

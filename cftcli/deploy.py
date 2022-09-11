@@ -213,8 +213,7 @@ def get_failed_resources(stackname:str) -> list:
                     'reason': record['ResourceStatusReason'],
                 }
             )
-
-    return sorted(result)
+    return result
 
 
 def save_cache(args) -> None:
@@ -236,7 +235,7 @@ def wait_for_stack(stackname:str) -> None:
     """
     state = get_stack_state(stackname)
     while True:
-        if not 'IN_PROGRESS' in state:
+        if 'IN_PROGRESS' not in state:
             break
 
         spinner_text = f'{stackname} is {state}'

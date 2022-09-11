@@ -62,6 +62,8 @@ setup_options = dict(
             'list-stacks = cftcli.list:_main',
             'stack-detail = cftcli.detail:_main',
             'describe-stack = cftcli.detail:_main',
+            'list-pipelines = cftcli.list_pipelines:_main',
+            'list-pipeline = cftcli.list_pipelines:_main',
         ]
     },
     packages=[NAME],
