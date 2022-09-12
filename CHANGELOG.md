@@ -1,5 +1,10 @@
 # Changelog for the CloudFormation Template CLI
 
+## [2.1.0] - 2022-09-11
+### Added
+- list-pipelines
+- attach-stack
+
 ## [2.0.1] - 2022-06-11
 ### fix
 - Fixed deploy bug,
