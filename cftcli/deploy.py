@@ -10,7 +10,6 @@ import json
 import logging
 import os
 import time
-# from wsgiref import headers
 
 
 import boto3
@@ -97,12 +96,11 @@ def _options() -> object:
                         dest='filename',
                         default=os.getenv('FILENAME', CACHE.get('filename', '')),
                         help="The filename to use.")
-    # parser.add_argument('--parameters', '--params', '-i',
-    #                     dest='parameters',
-    #                     type='list',
-    #                     required=False,
-    #                     default=[],
-    #                     help='The parameters to pass in.')
+    parser.add_argument('--parameters', '--params', '-i',
+                         dest='parameters',
+                         required=False,
+                         default='',
+                         help='A comma delimited list ie foo=bar,cat=dog')
     parser.add_argument('--failure',
                         dest='failure',
                         required=False,
@@ -271,6 +269,19 @@ def _main() -> None:
         boto3.setup_default_session(profile_name=args.src_profile)
         global CLOUDFORMATION  # pylint: disable=global-statement
         CLOUDFORMATION = boto3.client('cloudformation')
+
+    # cli paramters
+    parameters = []
+    if args.parameters:
+        for parameter in args.parameters.split(','):
+            name, value = parameter.split('=')
+            parameters.append(
+                {
+                    'ParameterKey': name,
+                    'ParameterValue': value
+                }
+            )
+
 
     # blarg
     if stack_exist(args.stackname):
