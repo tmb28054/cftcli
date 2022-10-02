@@ -1,5 +1,9 @@
 # Changelog for the CloudFormation Template CLI
 
+## [2.3.0] - 2022-10-04
+### Added
+- pipeline
+
 ## [2.2.0] - 2022-10-02
 ### Added
 - parameters
