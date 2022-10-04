@@ -21,8 +21,7 @@
 stages:
   - test
   - build
-  - deploylocal
-  - deploypublic
+  - deploy
 
 validate:
   stage: test
@@ -33,3 +32,8 @@ build-wheel:
   stage: build
   script:
     - bash scripts/build.sh
+
+Update Github:
+  stage: deploy
+  script:
+    - bash scripts/push-github.sh
