@@ -1,6 +1,6 @@
 # Changelog for the CloudFormation Template CLI
 
-## [2.4.0] - 2022-10-24
+## [2.4.1] - 2022-10-24
 ### Fix
 - fixed github push
 
