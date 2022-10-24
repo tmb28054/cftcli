@@ -19,9 +19,6 @@ def get_changelog() -> str:
     """
         I return the version from changelog.
 
-        Args
-        None
-
         Returns
         str: string form of the current verion.
     """
