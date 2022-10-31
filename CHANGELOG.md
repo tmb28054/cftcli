@@ -1,5 +1,9 @@
 # Changelog for the CloudFormation Template CLI
 
+## [2.4.2] - 2022-10-30
+### Fix
+- Fixed parameters bug
+
 ## [2.4.1] - 2022-10-24
 ### Fix
 - fixed github push

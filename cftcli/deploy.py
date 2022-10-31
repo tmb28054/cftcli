@@ -282,12 +282,12 @@ def _main() -> None:
                 }
             )
 
-
     # blarg
     if stack_exist(args.stackname):
         response = CLOUDFORMATION.update_stack(
             StackName=args.stackname,
             TemplateBody=load_file(args.filename),
+            Parameters=parameters,
             Capabilities=[
                 'CAPABILITY_IAM',
                 'CAPABILITY_NAMED_IAM',
@@ -303,6 +303,7 @@ def _main() -> None:
                 'CAPABILITY_NAMED_IAM',
                 'CAPABILITY_AUTO_EXPAND'
             ],
+            Parameters=parameters,
             OnFailure=args.failure,
             EnableTerminationProtection=args.protected
         )
