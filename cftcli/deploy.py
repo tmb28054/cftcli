@@ -10,7 +10,7 @@ import json
 import logging
 import os
 import time
-
+import yaml
 
 import boto3
 import diskcache
@@ -101,6 +101,11 @@ def _options() -> object:
                          required=False,
                          default='',
                          help='A comma delimited list ie foo=bar,cat=dog')
+    parser.add_argument('--parameter-file',
+                         dest='parameter_file',
+                         required=False,
+                         default='',
+                         help='A key value dictionary ie {"foo": "bar"}')
     parser.add_argument('--failure',
                         dest='failure',
                         required=False,
@@ -257,6 +262,29 @@ def wait_for_stack(stackname:str) -> None:
     print(f'{stackname} is {state}')
 
 
+def load_parameters(filename: str) -> dict:
+    """I load the parameters from a json or yaml file
+
+    Args:
+        filename (str): the file to load parameters from
+
+    Returns:
+        dict: of the parameters
+            {
+                'foo': 'bar'
+            }
+    """
+    file_data = load_file(filename)
+    if filename.lower().endswith('yaml') or filename.lower().endswith('yml'):
+        result = yaml.load(file_data,  Loader=yaml.Loader)
+    elif filename.lower().endswith('json'):
+        result = json.loads(file_data)
+    else:
+        raise ValueError('unable to load parameter-file')
+
+    return result
+
+
 def _main() -> None:
     """ main
     """
@@ -281,6 +309,8 @@ def _main() -> None:
                     'ParameterValue': value
                 }
             )
+    if args.parameter_file:
+        parameters += load_parameters(args.parameter_file)
 
     # blarg
     if stack_exist(args.stackname):

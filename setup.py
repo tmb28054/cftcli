@@ -36,20 +36,20 @@ with open('README.md', encoding='utf8') as readme_handler:
     README = readme_handler.read()
 
 
-setup_options = dict(
-    name=NAME,
-    version=get_changelog(),
-    description='CloudFormation Cli',
-    long_description=README,
-    author='Topaz Bott',
-    author_email='topaz@topazhome.net',
-    url='https://github.com/tmb28054/cftcli',
-    scripts=[],
-    license="Apache License 2.0",
-    package_data={
-        NAME: []
+setup_options = {
+    'name': NAME,
+    'version': get_changelog(),
+    'description': 'CloudFormation Cli',
+    'long_description': README,
+    'author': 'Topaz Bott',
+    'author_email': 'topaz@topazhome.net',
+    'url': 'https://github.com/tmb28054/cftcli',
+    'scripts': [],
+    'license': "Apache License 2.0",
+    'package_data': {
+        'NAME': []
     },
-    entry_points={
+    'entry_points': {
         'console_scripts': [
             'cfdeploy = cftcli.deploy:_main',
             'create-stack = cftcli.deploy:_main',
@@ -64,10 +64,10 @@ setup_options = dict(
             'codebuild = cftcli.codebuild:_main',
         ]
     },
-    packages=[NAME],
-    include_package_data=True,
-    install_requires=get_requirements(),
-    classifiers=[
+    'packages': [NAME],
+    'include_package_data': True,
+    'install_requires': get_requirements(),
+    'classifiers': [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Natural Language :: English',
@@ -76,6 +76,6 @@ setup_options = dict(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
     ],
-)
+}
 
 setup(**setup_options)
