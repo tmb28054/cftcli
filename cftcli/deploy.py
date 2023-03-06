@@ -275,13 +275,22 @@ def load_parameters(filename: str) -> dict:
             }
     """
     file_data = load_file(filename)
+    result = []
     if filename.lower().endswith('yaml') or filename.lower().endswith('yml'):
-        result = yaml.load(file_data,  Loader=yaml.Loader)
+        dict_data = yaml.load(file_data,  Loader=yaml.Loader)
     elif filename.lower().endswith('json'):
-        result = json.loads(file_data)
+        dict_data = json.loads(file_data)
     else:
         raise ValueError('unable to load parameter-file')
 
+    for key, value in dict_data.items():
+        result.append(
+                {
+                    'ParameterKey': key,
+                    'ParameterValue': value
+                }
+
+        )
     return result
 
 
