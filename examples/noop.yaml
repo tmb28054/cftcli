@@ -1,0 +1,16 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: a noop template
+Parameters:
+  foo:
+    Type: String
+  bar:
+    Type: String
+Resources:
+  NullResource:
+    Type: AWS::CloudFormation::WaitConditionHandle
+Outputs:
+  foo:
+    Value: !Ref foo
+  bar:
+    Value: !Ref bar
