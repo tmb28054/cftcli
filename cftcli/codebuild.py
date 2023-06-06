@@ -241,7 +241,7 @@ def download_artifact(s3_arn:str, filename:str) -> str:
         S3CLIENT.download_file(bucket, key, filename)
         return f"Download of {filename} {colored('SUCCESS', 'green')}"
     except:  # pylint: disable=bare-except
-        pass
+        LOG.debug('failed to download %s', filename)
 
     return f"Download of {s3_url} {colored('FAILED', 'red')}"
 

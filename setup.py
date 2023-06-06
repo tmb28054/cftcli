@@ -51,6 +51,7 @@ setup_options = {
     },
     'entry_points': {
         'console_scripts': [
+            'attach-stack = cftcli.attach:_main',
             'cfdeploy = cftcli.deploy:_main',
             'create-stack = cftcli.deploy:_main',
             'deploy-stack = cftcli.deploy:_main',

@@ -1,5 +1,9 @@
 # Changelog for the CloudFormation Template CLI
 
+## [2.6.r0 - 2023-06-06
+### Update
+- added attach
+
 ## [2.5.1] - 2023-03-06
 ### Fix
 - Fixed parameter file bug

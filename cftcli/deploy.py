@@ -277,7 +277,7 @@ def load_parameters(filename: str) -> dict:
     file_data = load_file(filename)
     result = []
     if filename.lower().endswith('yaml') or filename.lower().endswith('yml'):
-        dict_data = yaml.load(file_data,  Loader=yaml.Loader)
+        dict_data = yaml.safe_load(file_data,  Loader=yaml.Loader)
     elif filename.lower().endswith('json'):
         dict_data = json.loads(file_data)
     else:
