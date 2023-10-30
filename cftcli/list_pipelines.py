@@ -77,12 +77,12 @@ def _options() -> object:
     parser.add_argument('--profile', '-p',
                         required=False,
                         dest='profile',
-                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', '')),
+                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', 'default')),
                         help='The profile to use.')
     parser.add_argument('--region',
                         required=False,
                         dest='region',
-                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', '')),
+                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', 'us-east-1')),
                         help='Region to use.')
     parser.add_argument('-v', '--verbose',  '--debug',
                         dest='verbosity',
@@ -119,10 +119,12 @@ def _main() -> None:
     set_level(args.verbosity)
     logging.getLogger().setLevel(logging.DEBUG)
 
-    if args.profile:
-        boto3.setup_default_session(profile_name=args.src_profile)
-        global INTERFACE  # pylint: disable=global-statement
-        INTERFACE = boto3.client('codepipeline')
+    boto3.setup_default_session(
+        profile_name=args.profile,
+        region_name=args.region,
+    )
+    global INTERFACE  # pylint: disable=global-statement
+    INTERFACE = boto3.client('codepipeline')
 
     pipelines = []
     response = INTERFACE.list_pipelines()

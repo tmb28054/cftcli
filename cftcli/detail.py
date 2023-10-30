@@ -77,12 +77,12 @@ def _options() -> object:
     parser.add_argument('--profile', '-p',
                         required=False,
                         dest='profile',
-                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', '')),
+                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', 'default')),
                         help='The profile to use.')
     parser.add_argument('--region',
                         required=False,
                         dest='region',
-                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', '')),
+                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', 'us-east-1')),
                         help='Region to use.')
     parser.add_argument('-v', '--verbose',  '--debug',
                         dest='verbosity',
@@ -316,10 +316,12 @@ def _main() -> None:
 
         stacks = json.loads(stacks)
 
-    if args.profile:
-        boto3.setup_default_session(profile_name=args.profile)
-        global CLOUDFORMATION  # pylint: disable=global-statement
-        CLOUDFORMATION = boto3.client('cloudformation')
+    boto3.setup_default_session(
+        profile_name=args.profile,
+        region_name=args.region,
+    )
+    global CLOUDFORMATION  # pylint: disable=global-statement
+    CLOUDFORMATION = boto3.client('cloudformation')
 
     for stack in stacks:
         _display_stack(stack)

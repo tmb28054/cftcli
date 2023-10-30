@@ -8,9 +8,11 @@
 import argparse
 import json
 import logging
+import os
 
 
 import boto3
+import diskcache
 
 
 from cftcli.deploy import wait_for_stack
@@ -19,6 +21,9 @@ from cftcli.deploy import wait_for_stack
 LOG = logging.getLogger()
 TIME_DELAY = 3
 
+
+CACHE = diskcache.Cache('~/.cftcli')
+CACHETIME = 60 * 60 * 8  # Cache for 8 hours
 
 CLOUDFORMATION = boto3.client('cloudformation')
 
@@ -70,12 +75,12 @@ def _options() -> object:
     parser.add_argument('--profile', '-p',
                         required=False,
                         dest='profile',
-                        default='',
+                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', 'default')),
                         help='The profile to use.')
     parser.add_argument('--region',
                         required=False,
                         dest='region',
-                        default='',
+                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', 'us-east-1')),
                         help='Region to use.')
     parser.add_argument('-v', '--verbose',  '--debug',
                         dest='verbosity',
@@ -107,10 +112,12 @@ def _main() -> None:
     # set_level(args.verbosity)
     logging.getLogger().setLevel(logging.DEBUG)
 
-    if args.profile:
-        boto3.setup_default_session(profile_name=args.src_profile)
-        global CLOUDFORMATION  # pylint: disable=global-statement
-        CLOUDFORMATION = boto3.client('cloudformation')
+    boto3.setup_default_session(
+        profile_name=args.profile,
+        region_name=args.region,
+    )
+    global CLOUDFORMATION  # pylint: disable=global-statement
+    CLOUDFORMATION = boto3.client('cloudformation')
 
     # blarg
     response = CLOUDFORMATION.delete_stack(
