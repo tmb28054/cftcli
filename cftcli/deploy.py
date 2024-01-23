@@ -277,7 +277,7 @@ def load_parameters(filename: str) -> dict:
     file_data = load_file(filename)
     result = []
     if filename.lower().endswith('yaml') or filename.lower().endswith('yml'):
-        dict_data = yaml.safe_load(file_data,  Loader=yaml.Loader)
+        dict_data = yaml.safe_load(file_data)
     elif filename.lower().endswith('json'):
         dict_data = json.loads(file_data)
     else:
@@ -292,6 +292,44 @@ def load_parameters(filename: str) -> dict:
 
         )
     return result
+
+
+def fill_in_current_parameters(parameters: list, stack: str) -> list:
+    """ I look at the current stack and populate a list of current parameters
+        with a value of use current.
+
+    Args:
+        parameters (list): cloudformation parameters
+            [
+                {
+                    'ParameterKey': key,
+                    'ParameterValue': value
+                }
+            ]
+        stack (str): stack to be updated
+
+    Returns:
+        list: cloudformation parameters
+            [
+                {
+                    'ParameterKey': key,
+                    'ParameterValue': value
+                }
+            ]
+    """
+    current = []
+    for record in parameters:
+        current.append(record['ParameterKey'])
+    response = CLOUDFORMATION.describe_stacks(StackName=stack)
+    for record in response['Stacks'][0]['Parameters']:
+        if not record['ParameterKey'] in current:
+            parameters.append(
+                {
+                    'ParameterKey': record['ParameterKey'],
+                    'UsePreviousValue': True
+                }
+            )
+    return parameters
 
 
 def _main() -> None:
@@ -325,6 +363,7 @@ def _main() -> None:
 
     # blarg
     if stack_exist(args.stackname):
+        parameters = fill_in_current_parameters(parameters, args.stackname)
         response = CLOUDFORMATION.update_stack(
             StackName=args.stackname,
             TemplateBody=load_file(args.filename),
