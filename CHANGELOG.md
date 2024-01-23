@@ -1,5 +1,11 @@
 # Changelog for the CloudFormation Template CLI
 
+## [2.7.0] - 2024-01-23
+
+### Added
+
+- When updating an existing stack parameters not passed use the previus values.
+
 ## [2.6.1] - 2023-10-30
 
 ### fix
