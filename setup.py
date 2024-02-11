@@ -52,7 +52,10 @@ setup_options = {
     'entry_points': {
         'console_scripts': [
             'attach-stack = cftcli.attach:_main',
+            'lock-stack = cftcli.lock:_main',
+            'unlock-stack = cftcli.unlock:_main',
             'cfdeploy = cftcli.deploy:_main',
+            'stack-policy = cftcli.policy:_main',
             'create-stack = cftcli.deploy:_main',
             'deploy-stack = cftcli.deploy:_main',
             'update-stack = cftcli.deploy:_main',

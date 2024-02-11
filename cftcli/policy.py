@@ -15,18 +15,13 @@ import boto3
 import diskcache
 
 
-from cftcli.deploy import wait_for_stack
-
-
 LOG = logging.getLogger()
-TIME_DELAY = 3
 
 
 CACHE = diskcache.Cache('~/.cftcli')
 CACHETIME = 60 * 60 * 8  # Cache for 8 hours
 
 CLOUDFORMATION = boto3.client('cloudformation')
-
 
 def set_level(verbosity):
     """Sets the logging level based on command line provided verbosity.
@@ -67,10 +62,6 @@ def _options() -> object:
             argparse parser object.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--role', '-r',
-                        required=False,
-                        dest='role',
-                        help='The role to use.')
     parser.add_argument('--stack', '-s',
                         dest='stackname',
                         required=True,
@@ -123,14 +114,12 @@ def _main() -> None:
     global CLOUDFORMATION  # pylint: disable=global-statement
     CLOUDFORMATION = boto3.client('cloudformation')
 
-    kwargs = {
-        'StackName': args.stackname,
-    }
-    if args.role:
-        kwargs['RoleARN'] = args.role
-    response = CLOUDFORMATION.delete_stack(**kwargs)
+    response = CLOUDFORMATION.get_stack_policy(
+        StackName=args.stackname,
+    )
+    policy = json.loads(response.get('StackPolicyBody', '{}'))
     LOG.debug(json.dumps(response, indent=2, default=2))
-    wait_for_stack(args.stackname)
+    print(json.dumps(policy, indent=2, default=2))
 
 
 if __name__ == '__main__':

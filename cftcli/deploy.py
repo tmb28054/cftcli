@@ -81,6 +81,10 @@ def _options() -> object:
                         dest='profile',
                         default=os.getenv('AWS_PROFILE', CACHE.get('profile', 'default')),
                         help='The profile to use.')
+    parser.add_argument('--role', '-r',
+                        required=False,
+                        dest='role',
+                        help='The role to use.')
     parser.add_argument('--region',
                         required=False,
                         dest='region',
@@ -162,18 +166,22 @@ def get_stack_state(stackname:str) -> str:
 
         Args:
             stackname: string of the stack to get the state for
+
+        Returns: str of the stack
     """
     try:
         response = CLOUDFORMATION.describe_stacks(StackName=stackname)
         LOG.debug(json.dumps(response, indent=2, default=str))
+        print(json.dumps(response, indent=2, default=str))
         state = response['Stacks'][0]['StackStatus']
         resources = get_inprogress_resources(stackname)
         if resources:
             return f"{state} - {', '.join(resources)}"
         return state
-
-    except:  # pylint: disable=bare-except
-        return 'DELETE_COMPLETE'
+    except Exception as err_msg:
+        if f'Stack with id {stackname} does not exist' in str(err_msg):
+            return 'DELETE_COMPLETE'
+        raise err_msg
 
 
 def get_inprogress_resources(stackname:str) -> list:
@@ -321,7 +329,7 @@ def fill_in_current_parameters(parameters: list, stack: str) -> list:
     for record in parameters:
         current.append(record['ParameterKey'])
     response = CLOUDFORMATION.describe_stacks(StackName=stack)
-    for record in response['Stacks'][0]['Parameters']:
+    for record in response['Stacks'][0].get('Parameters', []):
         if not record['ParameterKey'] in current:
             parameters.append(
                 {
@@ -347,6 +355,12 @@ def _main() -> None:
     global CLOUDFORMATION  # pylint: disable=global-statement
     CLOUDFORMATION = boto3.client('cloudformation')
 
+    capabilities = [
+        'CAPABILITY_IAM',
+        'CAPABILITY_NAMED_IAM',
+        'CAPABILITY_AUTO_EXPAND'
+    ]
+
     # cli paramters
     parameters = []
     if args.parameters:
@@ -361,32 +375,24 @@ def _main() -> None:
     if args.parameter_file:
         parameters += load_parameters(args.parameter_file)
 
-    # blarg
+    kwargs = {
+        'StackName': args.stackname,
+        'TemplateBody': load_file(args.filename),
+        'Parameters': parameters,
+        'Capabilities': capabilities,
+    }
+    if args.role:
+        kwargs['RoleARN'] = args.role
+
     if stack_exist(args.stackname):
-        parameters = fill_in_current_parameters(parameters, args.stackname)
-        response = CLOUDFORMATION.update_stack(
-            StackName=args.stackname,
-            TemplateBody=load_file(args.filename),
-            Parameters=parameters,
-            Capabilities=[
-                'CAPABILITY_IAM',
-                'CAPABILITY_NAMED_IAM',
-                'CAPABILITY_AUTO_EXPAND'
-            ],
-        )
+        kwargs['Parameters'] = \
+            fill_in_current_parameters(parameters, args.stackname)
+        response = CLOUDFORMATION.update_stack(**kwargs)
     else:
-        response = CLOUDFORMATION.create_stack(
-            StackName=args.stackname,
-            TemplateBody=load_file(args.filename),
-            Capabilities=[
-                'CAPABILITY_IAM',
-                'CAPABILITY_NAMED_IAM',
-                'CAPABILITY_AUTO_EXPAND'
-            ],
-            Parameters=parameters,
-            OnFailure=args.failure,
-            EnableTerminationProtection=args.protected
-        )
+        kwargs['OnFailure'] = args.failure
+        kwargs['EnableTerminationProtection'] = args.protected
+        response = CLOUDFORMATION.create_stack(**kwargs)
+
     LOG.debug(json.dumps(response, indent=2, default=2))
     wait_for_stack(args.stackname)
     CACHE.close()

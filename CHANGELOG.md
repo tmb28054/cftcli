@@ -1,5 +1,13 @@
 # Changelog for the CloudFormation Template CLI
 
+
+## [2.8.0] - 2024-02-11
+
+### Added
+
+- policy management for stacks
+- Passing roles for stack operations
+
 ## [2.7.0] - 2024-01-23
 
 ### Added

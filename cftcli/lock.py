@@ -15,11 +15,7 @@ import boto3
 import diskcache
 
 
-from cftcli.deploy import wait_for_stack
-
-
 LOG = logging.getLogger()
-TIME_DELAY = 3
 
 
 CACHE = diskcache.Cache('~/.cftcli')
@@ -27,6 +23,23 @@ CACHETIME = 60 * 60 * 8  # Cache for 8 hours
 
 CLOUDFORMATION = boto3.client('cloudformation')
 
+LOCK_POLCIY = \
+    {
+        'Statement' : [
+            {
+                'Effect' : 'Allow',
+                'Action' : 'Update:*',
+                'Principal': '*',
+                'Resource' : '*'
+            },
+            {
+                'Effect' : 'Deny',
+                'Action' : 'Update:*',
+                'Principal': '*',
+                'Resource' : '*'
+            }
+        ]
+    }
 
 def set_level(verbosity):
     """Sets the logging level based on command line provided verbosity.
@@ -67,10 +80,6 @@ def _options() -> object:
             argparse parser object.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--role', '-r',
-                        required=False,
-                        dest='role',
-                        help='The role to use.')
     parser.add_argument('--stack', '-s',
                         dest='stackname',
                         required=True,
@@ -123,15 +132,19 @@ def _main() -> None:
     global CLOUDFORMATION  # pylint: disable=global-statement
     CLOUDFORMATION = boto3.client('cloudformation')
 
-    kwargs = {
-        'StackName': args.stackname,
-    }
-    if args.role:
-        kwargs['RoleARN'] = args.role
-    response = CLOUDFORMATION.delete_stack(**kwargs)
+    response = CLOUDFORMATION.set_stack_policy(
+        StackName=args.stackname,
+        StackPolicyBody=json.dumps(LOCK_POLCIY)
+    )
     LOG.debug(json.dumps(response, indent=2, default=2))
-    wait_for_stack(args.stackname)
+    print(f'Policy lock applied for {args.stackname}')
 
+    response = CLOUDFORMATION.update_termination_protection(
+        StackName=args.stackname,
+        EnableTerminationProtection=True
+    )
+    LOG.debug(json.dumps(response, indent=2, default=2))
+    print(f'Termination Protection for {args.stackname} enabled')
 
 if __name__ == '__main__':
     _main()
