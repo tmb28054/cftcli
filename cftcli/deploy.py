@@ -159,6 +159,23 @@ def stack_exist(stackname) -> bool:
         LOG.debug('Failed to get stack, presuming does not exist')
         return False
 
+def find_current_stack(stacks: list) -> dict:
+    """ I return the current stack filtering out previous deleted stacks
+
+    Args:
+        stacks (list): list of dict for stacks
+
+    Returns:
+        dict: dict of the stack
+    """
+    current = {}
+    for stack in stacks:
+        if not current:
+            current = stack
+        elif  stack['CreationTime'] > current['CreationTime']:
+            current = stack
+    return current
+
 
 def get_stack_state(stackname:str) -> str:
     """
@@ -171,9 +188,10 @@ def get_stack_state(stackname:str) -> str:
     """
     try:
         response = CLOUDFORMATION.describe_stacks(StackName=stackname)
+        # print(json.dumps(response, default=str, indent=2))
         LOG.debug(json.dumps(response, indent=2, default=str))
-        print(json.dumps(response, indent=2, default=str))
-        state = response['Stacks'][0]['StackStatus']
+        stack = find_current_stack(response['Stacks'])
+        state = stack['StackStatus']
         resources = get_inprogress_resources(stackname)
         if resources:
             return f"{state} - {', '.join(resources)}"
@@ -346,7 +364,7 @@ def _main() -> None:
     args = _options()
 
     # set_level(args.verbosity)
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
 
     boto3.setup_default_session(
         profile_name=args.profile,

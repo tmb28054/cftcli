@@ -1,6 +1,12 @@
 # Changelog for the CloudFormation Template CLI
 
 
+## [2.8.1] - 2024-09-04
+
+### Update
+
+- Fixed deleted stack refrence
+
 ## [2.8.0] - 2024-02-11
 
 ### Added
