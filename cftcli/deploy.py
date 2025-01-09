@@ -13,7 +13,6 @@ import time
 import yaml
 
 import boto3
-import diskcache
 from halo import Halo
 from termcolor import colored
 
@@ -23,10 +22,6 @@ import cftcli.common
 
 LOG = logging.getLogger()
 TIME_DELAY = 3
-
-
-CACHE = diskcache.Cache('~/.cftcli')
-CACHETIME = 60 * 60 * 8  # Cache for 8 hours
 
 
 CLOUDFORMATION = boto3.client('cloudformation')
@@ -74,12 +69,12 @@ def _options() -> object:
     parser.add_argument('--stack', '-s',
                         dest='stackname',
                         required=True,
-                        default=os.getenv('STACKNAME', CACHE.get('stackname', '')),
+                        default=os.getenv('STACKNAME', ''),
                         help='The Stack Name to use.')
     parser.add_argument('--profile', '-p',
                         required=False,
                         dest='profile',
-                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', 'default')),
+                        default=os.getenv('AWS_PROFILE', 'default'),
                         help='The profile to use.')
     parser.add_argument('--role', '-r',
                         required=False,
@@ -88,7 +83,7 @@ def _options() -> object:
     parser.add_argument('--region',
                         required=False,
                         dest='region',
-                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', 'us-east-1')),
+                        default=os.getenv('AWS_DEFAULT_REGION', 'us-east-1'),
                         help='Region to use.')
     parser.add_argument('-v', '--verbose',  '--debug',
                         dest='verbosity',
@@ -98,7 +93,7 @@ def _options() -> object:
     parser.add_argument('--filename', '-f',
                         required=False,
                         dest='filename',
-                        default=os.getenv('FILENAME', CACHE.get('filename', '')),
+                        default=os.getenv('FILENAME', ''),
                         help="The filename to use.")
     parser.add_argument('--parameters', '--params', '-i',
                          dest='parameters',
@@ -243,16 +238,6 @@ def get_failed_resources(stackname:str) -> list:
                 }
             )
     return result
-
-
-def save_cache(args) -> None:
-    """
-        write the cache
-    """
-    CACHE.add('stackname', args.stackname, CACHETIME)
-    CACHE.add('filename', args.filename, CACHETIME)
-    CACHE.add('region', args.region, CACHETIME)
-    CACHE.add('filename', args.filename, CACHETIME)
 
 
 def wait_for_stack(stackname:str) -> None:
@@ -413,7 +398,6 @@ def _main() -> None:
 
     LOG.debug(json.dumps(response, indent=2, default=2))
     wait_for_stack(args.stackname)
-    CACHE.close()
 
 
 if __name__ == '__main__':

@@ -14,7 +14,6 @@ from urllib.parse import urlparse
 
 
 import boto3
-import diskcache
 from halo import Halo
 from termcolor import colored
 
@@ -26,12 +25,9 @@ LOG = logging.getLogger()
 TIME_DELAY = 3
 
 
-CACHE = diskcache.Cache('~/.cftcli')
-CACHETIME = 60 * 60 * 8  # Cache for 8 hours
-
-
 CODEBUILD =  boto3.client('codebuild')
 S3CLIENT = boto3.client('s3')
+
 
 def set_level(verbosity):
     """Sets the logging level based on command line provided verbosity.
@@ -75,22 +71,22 @@ def _options() -> object:
     parser.add_argument('--src-artifact', '-s', '--src',
                         required=False,
                         dest='src_artifact',
-                        default=CACHE.get('src_artifact', ''),
+                        default='',
                         help='The source artifact to use.')
     parser.add_argument('--dst-artifact', '-d', '--dst',
                         required=False,
                         dest='dst_artifact',
-                        default=CACHE.get('dst_artifact', ''),
+                        default='',
                         help='The destination artifact')
     parser.add_argument('--profile', '-p',
                         required=False,
                         dest='profile',
-                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', 'default')),
+                        default='default',
                         help='The profile to use.')
     parser.add_argument('--region',
                         required=False,
                         dest='region',
-                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', 'us-east-1')),
+                        default='us-east-1',
                         help='Region to use.')
     parser.add_argument('-v', '--verbose',  '--debug',
                         dest='verbosity',
