@@ -35,18 +35,14 @@ CLOUDFORMATION = boto3.client('cloudformation')
 
 
 def set_level(verbosity):
-    """Sets the logging level based on command line provided verbosity.
+    """Set the logging level based on command line provided verbosity.
 
-    By default, `botocore` and `urllib3` are quiet and only show logging
-    statements at the `ERROR` level.  These logging statements will be showen
+    By default, botocore and urllib3 are quiet and only show logging
+    statements at the ERROR level. These logging statements will be shown
     when verbosity is greater than 1 (-vv, -vvv, etc).
 
     Args:
-        verbosity
-            0-based level of verbosity provide on CLI
-
-    Returns:
-        None
+        verbosity (int): 0-based level of verbosity provided on CLI.
     """
     level = logging.INFO
     logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -66,11 +62,10 @@ def set_level(verbosity):
 
 
 def _options() -> object:
-    """
-        I provide the argparse option set.
+    """Provide the argparse option set.
 
-        Returns
-            argparse parser object.
+    Returns:
+        argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('stacks', nargs='*', help='What stacks to view')
@@ -93,17 +88,13 @@ def _options() -> object:
 
 
 def _get_events(stackname:str) -> dict:
-    """
-        I return a list of the latest events
+    """Return a list of the latest events.
 
-        Args
-            stackname: string of the stackname to get events for
+    Args:
+        stackname (str): Name of the stack to get events for.
 
-        Returns
-            dict of events
-            {
-                LogicalId: { details }
-            }
+    Returns:
+        dict: Dictionary of events keyed by PhysicalResourceId.
     """
     events = {}
     response = CLOUDFORMATION.describe_stack_events(StackName=stackname)
@@ -122,17 +113,13 @@ def _get_events(stackname:str) -> dict:
 
 
 def _get_resources(stackname:str) -> dict:
-    """
-        I generate a list of resources for a stack
+    """Generate a list of resources for a stack.
 
-        Args
-            stackname: string of the stackname
+    Args:
+        stackname (str): Name of the stack.
 
-        Returns
-            dict of the resources
-            {
-                LogicalResourceId: resource-record
-            }
+    Returns:
+        dict: Dictionary of resources keyed by LogicalResourceId.
     """
     response = CLOUDFORMATION.describe_stack_resources(
         StackName=stackname
@@ -152,12 +139,11 @@ def _get_resources(stackname:str) -> dict:
     return resources
 
 
-def _disply_resources(resources:dict) -> str:
-    """
-        I display a list of resources for a stack.
+def _disply_resources(resources:dict) -> None:
+    """Display a list of resources for a stack.
 
-        Args
-            stackname: dict of the resources
+    Args:
+        resources (dict): Dictionary of stack resources.
     """
     display_keys = [
         'LogicalResourceId',
@@ -205,15 +191,11 @@ def _disply_resources(resources:dict) -> str:
     )
 
 
-def _display_events(stackname:str) -> str:
-    """
-        I print a table of the cloudformation events for a stack
+def _display_events(stackname:str) -> None:
+    """Print a table of the CloudFormation events for a stack.
 
-        Args
-            stackname: string of the stackname
-
-        Returns
-            None
+    Args:
+        stackname (str): Name of the stack.
     """
     detail = []
     header = []
@@ -257,11 +239,10 @@ def _display_events(stackname:str) -> str:
 
 
 def _display_stack(stackname) -> None:
-    """
-        I display the stack data
+    """Display the stack data.
 
-        Args:
-            stackname: the stackname to display
+    Args:
+        stackname (str): The stack name to display.
     """
     detail = []
     response = CLOUDFORMATION.describe_stacks(StackName=stackname)
@@ -296,8 +277,7 @@ def _display_stack(stackname) -> None:
 
 
 def _main() -> None:
-    """ main
-    """
+    """Main entry point for describe-stack command."""
     args = _options()
 
     set_level(args.verbosity)

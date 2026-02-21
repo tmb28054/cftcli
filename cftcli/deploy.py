@@ -28,18 +28,14 @@ CLOUDFORMATION = boto3.client('cloudformation')
 
 
 def set_level(verbosity):
-    """Sets the logging level based on command line provided verbosity.
+    """Set the logging level based on command line provided verbosity.
 
-    By default, `botocore` and `urllib3` are quiet and only show logging
-    statements at the `ERROR` level.  These logging statements will be showen
+    By default, botocore and urllib3 are quiet and only show logging
+    statements at the ERROR level. These logging statements will be shown
     when verbosity is greater than 1 (-vv, -vvv, etc).
 
     Args:
-        verbosity
-            0-based level of verbosity provide on CLI
-
-    Returns:
-        None
+        verbosity (int): 0-based level of verbosity provided on CLI.
     """
     level = logging.INFO
     logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -59,11 +55,10 @@ def set_level(verbosity):
 
 
 def _options() -> object:
-    """
-        I provide the argparse option set.
+    """Provide the argparse option set.
 
-        Returns
-            argparse parser object.
+    Returns:
+        argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--stack', '-s',
@@ -121,47 +116,46 @@ def _options() -> object:
 
 
 def load_file(filename) -> str:
-    """
-        I return the content of the file.
+    """Return the content of the file.
 
-        Args
-            filename: string of the file to load
+    Args:
+        filename (str): Path to the file to load.
 
-        Returns
-            string of the file contents
+    Returns:
+        str: File contents.
     """
     with open(filename, encoding='utf8') as file_handler:
         return file_handler.read()
 
 
-def stack_exist(stackname) -> bool:
-    """
-        I return true if the stack exsits, false if it doesn't.
+def stack_exist(stackname: str) -> bool:
+    """Check if a CloudFormation stack exists.
 
-        Args
-            stackname: string of the stack which may or maynot exist.
+    Args:
+        stackname (str): Name of the stack to check.
 
-        Returns
-            true: if the stack exists
-            false: if the stack does not exist
+    Returns:
+        bool: True if the stack exists, False otherwise.
     """
     try:
         result = CLOUDFORMATION.describe_stacks(StackName=stackname)
         LOG.debug('Stack Context Is:')
         LOG.debug(json.dumps(result, indent=2, default=str))
         return True
-    except:  # pylint: disable=bare-except
-        LOG.debug('Failed to get stack, presuming does not exist')
-        return False
+    except CLOUDFORMATION.exceptions.ClientError as err:
+        if 'does not exist' in str(err):
+            LOG.debug('Stack does not exist: %s', stackname)
+            return False
+        raise
 
 def find_current_stack(stacks: list) -> dict:
-    """ I return the current stack filtering out previous deleted stacks
+    """Return the current stack filtering out previous deleted stacks.
 
     Args:
-        stacks (list): list of dict for stacks
+        stacks (list): List of stack dictionaries.
 
     Returns:
-        dict: dict of the stack
+        dict: The most recently created stack.
     """
     current = {}
     for stack in stacks:
@@ -173,13 +167,13 @@ def find_current_stack(stacks: list) -> dict:
 
 
 def get_stack_state(stackname:str) -> str:
-    """
-        I return the stack state.
+    """Return the stack state.
 
-        Args:
-            stackname: string of the stack to get the state for
+    Args:
+        stackname (str): Name of the stack to get the state for.
 
-        Returns: str of the stack
+    Returns:
+        str: Stack status, optionally with in-progress resources.
     """
     try:
         response = CLOUDFORMATION.describe_stacks(StackName=stackname)
@@ -198,14 +192,13 @@ def get_stack_state(stackname:str) -> str:
 
 
 def get_inprogress_resources(stackname:str) -> list:
-    """
-        I return a list of resources which are IN_PROGRESS.
+    """Return a list of resources which are IN_PROGRESS.
 
-        Args:
-            stackname: string of the stack to build the list from.
+    Args:
+        stackname (str): Name of the stack to build the list from.
 
-        Returns
-            list of resources which have a state of IN_PROGRESS
+    Returns:
+        list: Sorted list of logical resource IDs with IN_PROGRESS status.
     """
     result = []
     response = CLOUDFORMATION.describe_stack_resources(StackName=stackname)
@@ -216,14 +209,13 @@ def get_inprogress_resources(stackname:str) -> list:
 
 
 def get_failed_resources(stackname:str) -> list:
-    """
-        I return a list of resources which failed.
+    """Return a list of resources which failed.
 
-        Args:
-            stackname: string of the stack to build the list from.
+    Args:
+        stackname (str): Name of the stack to build the list from.
 
-        Returns
-            list of resources which have a state failed
+    Returns:
+        list: List of dictionaries containing failed resource details.
     """
     result = []
     response = CLOUDFORMATION.describe_stack_resources(StackName=stackname)
@@ -241,11 +233,10 @@ def get_failed_resources(stackname:str) -> list:
 
 
 def wait_for_stack(stackname:str) -> None:
-    """
-        I wait for the stack to complete.
+    """Wait for the stack to complete.
 
-        Args
-            stackanme: string of the stackname.
+    Args:
+        stackname (str): Name of the stack to wait for.
     """
     state = get_stack_state(stackname)
     while True:
@@ -273,17 +264,17 @@ def wait_for_stack(stackname:str) -> None:
     print(f'{stackname} is {state}')
 
 
-def load_parameters(filename: str) -> dict:
-    """I load the parameters from a json or yaml file
+def load_parameters(filename: str) -> list:
+    """Load parameters from a JSON or YAML file.
 
     Args:
-        filename (str): the file to load parameters from
+        filename (str): Path to the parameter file.
 
     Returns:
-        dict: of the parameters
-            {
-                'foo': 'bar'
-            }
+        list: List of parameter dictionaries in CloudFormation format.
+        
+    Raises:
+        ValueError: If file format is not JSON or YAML.
     """
     file_data = load_file(filename)
     result = []
@@ -306,27 +297,17 @@ def load_parameters(filename: str) -> dict:
 
 
 def fill_in_current_parameters(parameters: list, stack: str) -> list:
-    """ I look at the current stack and populate a list of current parameters
-        with a value of use current.
+    """Populate current stack parameters with UsePreviousValue.
+    
+    Looks at the current stack and adds any parameters not in the provided
+    list with UsePreviousValue set to True.
 
     Args:
-        parameters (list): cloudformation parameters
-            [
-                {
-                    'ParameterKey': key,
-                    'ParameterValue': value
-                }
-            ]
-        stack (str): stack to be updated
+        parameters (list): CloudFormation parameters list.
+        stack (str): Stack name to be updated.
 
     Returns:
-        list: cloudformation parameters
-            [
-                {
-                    'ParameterKey': key,
-                    'ParameterValue': value
-                }
-            ]
+        list: Updated CloudFormation parameters list.
     """
     current = []
     for record in parameters:
@@ -344,8 +325,7 @@ def fill_in_current_parameters(parameters: list, stack: str) -> list:
 
 
 def _main() -> None:
-    """ main
-    """
+    """Main entry point for deploy-stack command."""
     args = _options()
 
     # set_level(args.verbosity)

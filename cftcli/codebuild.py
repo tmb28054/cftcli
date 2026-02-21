@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 
 
 import boto3
+import diskcache
 from halo import Halo
 from termcolor import colored
 
@@ -23,6 +24,8 @@ from termcolor import colored
 
 LOG = logging.getLogger()
 TIME_DELAY = 3
+CACHE = diskcache.Cache('~/.cftcli')
+CACHETIME = 60 * 60 * 8  # Cache for 8 hours
 
 
 CODEBUILD =  boto3.client('codebuild')
@@ -30,18 +33,14 @@ S3CLIENT = boto3.client('s3')
 
 
 def set_level(verbosity):
-    """Sets the logging level based on command line provided verbosity.
+    """Set the logging level based on command line provided verbosity.
 
-    By default, `botocore` and `urllib3` are quiet and only show logging
-    statements at the `ERROR` level.  These logging statements will be showen
+    By default, botocore and urllib3 are quiet and only show logging
+    statements at the ERROR level. These logging statements will be shown
     when verbosity is greater than 1 (-vv, -vvv, etc).
 
     Args:
-        verbosity
-            0-based level of verbosity provide on CLI
-
-    Returns:
-        None
+        verbosity (int): 0-based level of verbosity provided on CLI.
     """
     level = logging.INFO
     logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -61,11 +60,10 @@ def set_level(verbosity):
 
 
 def _options() -> object:
-    """
-        I provide the argparse option set.
+    """Provide the argparse option set.
 
-        Returns
-            argparse parser object.
+    Returns:
+        argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--src-artifact', '-s', '--src',
@@ -122,22 +120,23 @@ def _options() -> object:
 
 
 def load_file(filename) -> str:
-    """
-        I return the content of the file.
+    """Return the content of the file.
 
-        Args
-            filename: string of the file to load
+    Args:
+        filename (str): Path to the file to load.
 
-        Returns
-            string of the file contents
+    Returns:
+        str: File contents.
     """
     with open(filename, encoding='utf8') as file_handler:
         return file_handler.read()
 
 
 def save_cache(args) -> None:
-    """
-        write the cache
+    """Write arguments to cache.
+    
+    Args:
+        args (argparse.Namespace): Parsed command line arguments.
     """
     CACHE.add('profile', args.profile, CACHETIME)
     CACHE.add('buildspec', args.buildspec, CACHETIME)
@@ -151,11 +150,13 @@ def save_cache(args) -> None:
 
 
 def watch_build(build_id:str):
-    """
-        I watch the build to waif for it to finish.
+    """Watch the build and wait for it to finish.
 
-        Args:
-            build_id: string of the build id
+    Args:
+        build_id (str): The CodeBuild build ID to watch.
+        
+    Returns:
+        dict: The final build record.
     """
     build = CODEBUILD.batch_get_builds(ids=[build_id])['builds'][0]
 
@@ -205,29 +206,26 @@ def watch_build(build_id:str):
 
 
 def s3arn_to_s3url(s3arn:str) -> str:
-    """
-        I convert an s3 object arn to s3 url.
+    """Convert an S3 object ARN to S3 URL.
 
-        Args
-            s3arn: string of an s3 arn.
-                example: arn:aws:s3:::bucket/folder/object
+    Args:
+        s3arn (str): S3 ARN (e.g., arn:aws:s3:::bucket/folder/object).
 
-        Returns
-            string of the s3 url
-                example: s3://bucket/folder/object
+    Returns:
+        str: S3 URL (e.g., s3://bucket/folder/object).
     """
     return f"s3://{s3arn.split(':')[-1]}"
 
 
 def download_artifact(s3_arn:str, filename:str) -> str:
-    """
-        I download the artifact to a local file.
+    """Download the artifact to a local file.
 
-        Args:
-            s3_arn: the s3 arn of the object to download.
-            filename: the filename to download too.
+    Args:
+        s3_arn (str): The S3 ARN of the object to download.
+        filename (str): The filename to download to.
 
-        Returns: string of the output text
+    Returns:
+        str: Status message indicating success or failure.
     """
     s3_url = s3arn_to_s3url(s3_arn)
     obj = urlparse(s3_url)
@@ -236,15 +234,14 @@ def download_artifact(s3_arn:str, filename:str) -> str:
         key = obj.path.lstrip('/')
         S3CLIENT.download_file(bucket, key, filename)
         return f"Download of {filename} {colored('SUCCESS', 'green')}"
-    except:  # pylint: disable=bare-except
-        LOG.debug('failed to download %s', filename)
+    except Exception as err:
+        LOG.debug('failed to download %s: %s', filename, err)
 
     return f"Download of {s3_url} {colored('FAILED', 'red')}"
 
 
 def _main() -> None:
-    """ main
-    """
+    """Main entry point for codebuild command."""
     args = _options()
     save_cache(args)
 

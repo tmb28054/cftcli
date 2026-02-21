@@ -36,18 +36,14 @@ STATE_COLOR = {
 
 
 def set_level(verbosity):
-    """Sets the logging level based on command line provided verbosity.
+    """Set the logging level based on command line provided verbosity.
 
-    By default, `botocore` and `urllib3` are quiet and only show logging
-    statements at the `ERROR` level.  These logging statements will be showen
+    By default, botocore and urllib3 are quiet and only show logging
+    statements at the ERROR level. These logging statements will be shown
     when verbosity is greater than 1 (-vv, -vvv, etc).
 
     Args:
-        verbosity
-            0-based level of verbosity provide on CLI
-
-    Returns:
-        None
+        verbosity (int): 0-based level of verbosity provided on CLI.
     """
     level = logging.INFO
     logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -67,11 +63,10 @@ def set_level(verbosity):
 
 
 def _options() -> object:
-    """
-        I provide the argparse option set.
+    """Provide the argparse option set.
 
-        Returns
-            argparse parser object.
+    Returns:
+        argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--profile', '-p',
@@ -92,13 +87,14 @@ def _options() -> object:
     return parser.parse_args()
 
 def _get_pipeline_state(pipeline:str) -> str:
-    """
-        I check the pipeline state
+    """Check the pipeline state.
 
-        Returns string
-            'Failed': if the job is failed
-            'InProgress': if the job is InProgress
-            'Succeeded': if there is not other return result.
+    Args:
+        pipeline (str): Name of the pipeline to check.
+        
+    Returns:
+        str: 'Failed' if any stage failed, 'InProgress' if any stage is in progress,
+            'Succeeded' otherwise.
     """
     stages = INTERFACE.get_pipeline_state(name=pipeline)['stageStates']
     for context in stages:
@@ -112,8 +108,7 @@ def _get_pipeline_state(pipeline:str) -> str:
 
 
 def _main() -> None:
-    """ main
-    """
+    """Main entry point for list-pipelines command."""
     args = _options()
 
     set_level(args.verbosity)

@@ -17,7 +17,11 @@ LOG = logging.getLogger()
 
 
 def display_table(records, title='Resources') -> None:
-    """ foo
+    """Display records in a formatted table.
+    
+    Args:
+        records (list): List of dictionaries containing record data.
+        title (str, optional): Title for the table. Defaults to 'Resources'.
     """
     result = []
     headers = []

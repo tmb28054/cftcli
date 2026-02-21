@@ -36,18 +36,14 @@ UNLOCK_POLCIY = \
     }
 
 def set_level(verbosity):
-    """Sets the logging level based on command line provided verbosity.
+    """Set the logging level based on command line provided verbosity.
 
-    By default, `botocore` and `urllib3` are quiet and only show logging
-    statements at the `ERROR` level.  These logging statements will be showen
+    By default, botocore and urllib3 are quiet and only show logging
+    statements at the ERROR level. These logging statements will be shown
     when verbosity is greater than 1 (-vv, -vvv, etc).
 
     Args:
-        verbosity
-            0-based level of verbosity provide on CLI
-
-    Returns:
-        None
+        verbosity (int): 0-based level of verbosity provided on CLI.
     """
     level = logging.INFO
     logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -67,11 +63,10 @@ def set_level(verbosity):
 
 
 def _options() -> object:
-    """
-        I provide the argparse option set.
+    """Provide the argparse option set.
 
-        Returns
-            argparse parser object.
+    Returns:
+        argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--stack', '-s',
@@ -98,22 +93,20 @@ def _options() -> object:
 
 
 def load_file(filename) -> str:
-    """
-        I return the content of the file.
+    """Return the content of the file.
 
-        Args
-            filename: string of the file to load
+    Args:
+        filename (str): Path to the file to load.
 
-        Returns
-            string of the file contents
+    Returns:
+        str: File contents.
     """
     with open(filename, encoding='utf8') as file_handler:
         return file_handler.read()
 
 
 def _main() -> None:
-    """ main
-    """
+    """Main entry point for unlock-stack command."""
     args = _options()
 
     # set_level(args.verbosity)

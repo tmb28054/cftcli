@@ -26,6 +26,15 @@ dependencies = [
     "halo",
     "termcolor",
     "tabulate",
+    "diskcache",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "coverage>=7.0",
 ]
 
 [project.urls]
@@ -50,3 +59,9 @@ codebuild = "cftcli.codebuild:_main"
 
 [tool.setuptools.dynamic]
 version = {attr = "cftcli.__version__.__version__"}
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+cftcli = ["*.md"]

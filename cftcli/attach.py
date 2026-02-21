@@ -21,24 +21,22 @@ LOG = logging.getLogger()
 TIME_DELAY = 3
 CACHE = diskcache.Cache('~/.cftcli')
 CACHETIME = 60 * 60 * 8  # Cache for 8 hours
+CACHE = diskcache.Cache('~/.cftcli')
+CACHETIME = 60 * 60 * 8  # Cache for 8 hours
 
 
 CLOUDFORMATION = boto3.client('cloudformation')
 
 
 def set_level(verbosity):
-    """Sets the logging level based on command line provided verbosity.
+    """Set the logging level based on command line provided verbosity.
 
-    By default, `botocore` and `urllib3` are quiet and only show logging
-    statements at the `ERROR` level.  These logging statements will be showen
+    By default, botocore and urllib3 are quiet and only show logging
+    statements at the ERROR level. These logging statements will be shown
     when verbosity is greater than 1 (-vv, -vvv, etc).
 
     Args:
-        verbosity
-            0-based level of verbosity provide on CLI
-
-    Returns:
-        None
+        verbosity (int): 0-based level of verbosity provided on CLI.
     """
     level = logging.INFO
     logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -58,11 +56,10 @@ def set_level(verbosity):
 
 
 def _options() -> object:
-    """
-        I provide the argparse option set.
+    """Provide the argparse option set.
 
-        Returns
-            argparse parser object.
+    Returns:
+        argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--stack', '-s',
@@ -89,8 +86,7 @@ def _options() -> object:
 
 
 def _main() -> None:
-    """ main
-    """
+    """Main entry point for attach-stack command."""
     args = _options()
 
     set_level(args.verbosity)
