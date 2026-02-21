@@ -6,6 +6,7 @@
 ### Update
 
 - adopted pyproject.toml
+- added unit tests
 
 ## [2.8.1] - 2024-09-04
 
