@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cftcli"
+dynamic = ["version"]
+description = "CloudFormation Cli"
+readme = "README.md"
+authors = [{name = "Topaz Bott", email = "topaz@topazhome.net"}]
+license = {text = "Apache License 2.0"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "boto3",
+    "halo",
+    "termcolor",
+    "tabulate",
+]
+
+[project.urls]
+Homepage = "https://github.com/tmb28054/cftcli"
+
+[project.scripts]
+attach-stack = "cftcli.attach:_main"
+lock-stack = "cftcli.lock:_main"
+unlock-stack = "cftcli.unlock:_main"
+cfdeploy = "cftcli.deploy:_main"
+stack-policy = "cftcli.policy:_main"
+create-stack = "cftcli.deploy:_main"
+deploy-stack = "cftcli.deploy:_main"
+update-stack = "cftcli.deploy:_main"
+delete-stack = "cftcli.destroy:_main"
+list-stacks = "cftcli.list:_main"
+stack-detail = "cftcli.detail:_main"
+describe-stack = "cftcli.detail:_main"
+list-pipelines = "cftcli.list_pipelines:_main"
+list-pipeline = "cftcli.list_pipelines:_main"
+codebuild = "cftcli.codebuild:_main"
+
+[tool.setuptools.dynamic]
+version = {attr = "cftcli.__version__.__version__"}

@@ -1,6 +1,12 @@
 # Changelog for the CloudFormation Template CLI
 
 
+## [2.9.0] - 2026-02-21
+
+### Update
+
+- adopted pyproject.toml
+
 ## [2.8.1] - 2024-09-04
 
 ### Update
