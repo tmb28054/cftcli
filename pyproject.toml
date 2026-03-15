@@ -64,4 +64,4 @@ version = {attr = "cftcli.__version__.__version__"}
 include-package-data = true
 
 [tool.setuptools.package-data]
-cftcli = ["*.md"]
+cftcli = ["*.md", "../CHANGELOG.md"]

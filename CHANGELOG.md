@@ -1,6 +1,12 @@
 # Changelog for the CloudFormation Template CLI
 
 
+## [2.9.1] - 2026-03-15
+
+### Update
+
+- fixed version bug
+
 ## [2.9.0] - 2026-02-21
 
 ### Update
