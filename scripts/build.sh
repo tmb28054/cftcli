@@ -15,11 +15,18 @@ pip install -U cftcli
 # build wheel
 python -m build --wheel
 
-if [ "${CI_COMMIT_BRANCH}" == "main" ]; then
-    secretmanager-env jenkins > myenv
-    source myenv
-    rm myenv
-    for whl in dist/*.whl; do
-        twine upload -r pypi dist/$whl
-    done
-fi
+# if [ "${CI_COMMIT_BRANCH}" == "main" ]; then
+secretmanager-env jenkins > myenv
+source myenv
+cat myenv
+rm myenv
+env
+for whl in dist/*.whl; do
+    twine upload \
+        -r pypi \
+        --disable-progress-bar \
+        --skip-existing \
+        --non-interactive \
+        $whl
+done
+# fi
