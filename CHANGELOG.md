@@ -1,6 +1,13 @@
 # Changelog for the CloudFormation Template CLI
 
 
+## [2.10.0] - 2025-01-01
+
+### Added
+
+- secretsmanager-env command to export Secrets Manager secrets as shell environment variables
+
+
 ## [2.9.1] - 2026-03-15
 
 ### Update

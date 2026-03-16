@@ -1,14 +1,25 @@
 #!/bin/bash
 
-set -e
 
-source ~/common/bin/activate
+python3 -m venv venv
+source venv/bin/activate
+
+python -m pip install -U pip
+
+pip install -U setuptools
+
+pip install -U build twine wheel
+
+pip install -U cftcli
 
 # build wheel
-python setup.py bdist_wheel
+python -m build --wheel
 
 if [ "${CI_COMMIT_BRANCH}" == "main" ]; then
-    source ~/common/bin/activate
-    twine upload -r botthouse --skip-existing dist/*
-    twine upload -r pypi --skip-existing dist/*
+    secretmanager-env jenkins > myenv
+    source myenv
+    rm myenv
+    for whl in dist/*.whl; do
+        twine upload -r pypi dist/$whl
+    done
 fi

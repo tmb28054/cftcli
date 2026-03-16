@@ -164,3 +164,38 @@ codebuild --codebuild PROJECT_NAME --buildspec BUILDSPEC_FILE [OPTIONS]
 - `--profile, -p`: AWS profile
 - `--region`: AWS region
 - `--verbose, -v`: Increase verbosity
+
+## Secrets Manager
+
+### secretsmanager-env
+
+Read an AWS Secrets Manager secret and output shell export statements.
+
+```bash
+secretmanager-env SECRET_ARN [OPTIONS]
+```
+
+**Options:**
+- `SECRET_ARN`: The ARN of the secret to retrieve (required)
+- `--profile, -p`: AWS profile
+- `--region`: AWS region
+
+**Usage:**
+
+```bash
+# Print export statements
+secretmanager-env arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret
+
+# Source directly into current shell
+source <(secretmanager-env arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret)
+
+# With profile and region
+source <(secretmanager-env $SECRET_ARN --profile prod --region us-east-1)
+```
+
+Given a secret `{"DB_HOST": "localhost", "DB_PASS": "s3cr3t"}`, the output will be:
+
+```bash
+export DB_HOST='localhost'
+export DB_PASS='s3cr3t'
+```

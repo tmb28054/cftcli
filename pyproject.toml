@@ -56,6 +56,7 @@ describe-stack = "cftcli.detail:_main"
 list-pipelines = "cftcli.list_pipelines:_main"
 list-pipeline = "cftcli.list_pipelines:_main"
 codebuild = "cftcli.codebuild:_main"
+secretmanager-env = "cftcli.secretsmanager_env:_main"
 
 [tool.setuptools.dynamic]
 version = {attr = "cftcli.__version__.__version__"}
