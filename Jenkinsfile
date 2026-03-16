@@ -18,6 +18,10 @@ pipeline:
       steps:
         - checkout: scm
 
+    - stage: Setup gci
+      steps:
+        - sh: aws sts get-caller-identity
+
     - stage: Setup Virtualenv
       steps:
         - sh: |
