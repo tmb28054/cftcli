@@ -1,9 +1,6 @@
 pipeline:
   agent: any
 
-  options:
-    - skipDefaultCheckout: true
-
   environment:
     - AWS_CREDENTIALS: credentials('AKIAR6EAZBPOYQFU67M2')
     - AWS_ACCESS_KEY_ID: ${AWS_CREDENTIALS_USR}
