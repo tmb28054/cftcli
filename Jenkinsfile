@@ -1,35 +1,20 @@
-pipeline:
-  agent: any
-
-  environment:
-    - AWS_CREDENTIALS: credentials('AKIAR6EAZBPOYQFU67M2')
-    - AWS_ACCESS_KEY_ID: ${AWS_CREDENTIALS_USR}
-    - AWS_SECRET_ACCESS_KEY: ${AWS_CREDENTIALS_PSW}
-
-  stages:
-    - stage: Clean Workspace
-      steps:
-        - deleteDir
-
-    - stage: Checkout
-      steps:
-        - checkout: scm
-
-    - stage: Setup gci
-      steps:
-        - sh: aws sts get-caller-identity
-
-    - stage: Setup Virtualenv
-      steps:
-        - sh: |
-            python3 -m venv venv
-            venv/bin/pip install --upgrade pip -q
-            venv/bin/pip install . -q
-
-    - stage: Run
-      steps:
-        - sh: venv/bin/secretmanager-env jenkins
-
-  post:
-    always:
-      - deleteDir
+pipeline {
+    agent any
+    stages {
+        stage('Run AWS CLI command') {
+            steps {
+                script {
+                    withCredentials([
+                        // Binds the credentials to environment variables for the enclosed steps
+                        // The credentialsId is the ID you set in the Jenkins UI
+                        // AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are the default variable names
+                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'my-aws-creds']
+                    ]) {
+                        // Any 'sh' or 'script' step inside this block will have access to the variables
+                        sh 'aws s3 ls' 
+                    }
+                }
+            }
+        }
+    }
+}
