@@ -1,14 +1,11 @@
-#!env python
-"""
-    I manage cloudformation stacks
-"""
+#!/usr/bin/env python3
+"""Shared display utilities for cftcli commands."""
 
 
 import json
 import logging
-
-
 import textwrap
+
 from tabulate import tabulate
 from termcolor import colored
 
@@ -18,7 +15,7 @@ LOG = logging.getLogger()
 
 def display_table(records, title='Resources') -> None:
     """Display records in a formatted table.
-    
+
     Args:
         records (list): List of dictionaries containing record data.
         title (str, optional): Title for the table. Defaults to 'Resources'.

@@ -1,5 +1,39 @@
 # Changelog for the CloudFormation Template CLI
 
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [2.11.0] - 2026-05-02
+
+### Changed
+
+- Consolidated duplicated `set_level()`, `load_file()`, and constants (`TIME_DELAY`, `CACHETIME`, `CACHE`) into `cftcli/utils.py`
+- Added shared `add_common_arguments()` and `setup_session()` helpers to reduce boilerplate across all CLI modules
+- All module-level boto3 clients now initialize as `None` instead of calling `boto3.client()` at import time
+- Replaced commented-out `set_level()` calls with `setup_session()` so verbosity flags work correctly
+- Added minimum version bounds to all dependencies in `pyproject.toml`
+- Expanded `.gitignore` with standard Python, IDE, and OS entries
+- Added `set -e` and branch guard to `scripts/build.sh`
+- Fixed shebang lines from `#!env python` to `#!/usr/bin/env python3` across all modules
+
+### Fixed
+
+- Fixed `LOCK_POLCIY` typo to `LOCK_POLICY` in `lock.py`
+- Fixed `UNLOCK_POLCIY` typo to `UNLOCK_POLICY` in `unlock.py`
+- Fixed `_disply_resources` typo to `_display_resources` in `detail.py`
+- Fixed `KeyError` bug in `detail.py` `_get_resources()` (`resource[name]` → `resources[name]`)
+- Synced `requirements.txt` with `pyproject.toml` (added missing `diskcache` and `pyyaml`)
+- Ensured `CACHE.close()` is called in all CLI entry points
+
+### Added
+
+- Created missing `scripts/test.sh` referenced by `.gitlab-ci.yml`
+- Added tests for `attach.py`, `destroy.py`, `detail.py`, `list.py`, `lock.py`, `unlock.py`, and `policy.py`
+- Test suite expanded from 41 to 71 tests with all modules now covered
 
 ## [2.10.1] - 2026-04-14
 

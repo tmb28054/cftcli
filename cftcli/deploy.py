@@ -1,10 +1,7 @@
-#!env python
-"""
-    I manage cloudformation stacks
-"""
+#!/usr/bin/env python3
+"""Deploy (create or update) CloudFormation stacks."""
 
 
-# python libraries
 import argparse
 import json
 import logging
@@ -16,45 +13,16 @@ import boto3
 from halo import Halo
 from termcolor import colored
 
-
 import cftcli.common
+from cftcli.utils import (
+    LOG, TIME_DELAY, load_file, set_level, setup_session,
+)
 
 
-LOG = logging.getLogger()
-TIME_DELAY = 3
+CLOUDFORMATION = None
 
 
-CLOUDFORMATION = boto3.client('cloudformation')
-
-
-def set_level(verbosity):
-    """Set the logging level based on command line provided verbosity.
-
-    By default, botocore and urllib3 are quiet and only show logging
-    statements at the ERROR level. These logging statements will be shown
-    when verbosity is greater than 1 (-vv, -vvv, etc).
-
-    Args:
-        verbosity (int): 0-based level of verbosity provided on CLI.
-    """
-    level = logging.INFO
-    logging.getLogger('botocore').setLevel(logging.ERROR)
-    logging.getLogger('urllib3').setLevel(logging.ERROR)
-    if verbosity > 1:
-        # enable other loggers
-        logging.getLogger('botocore').setLevel(logging.DEBUG)
-        logging.getLogger('urllib3').setLevel(logging.DEBUG)
-    if verbosity == 1:
-        logging.getLogger('botocore').setLevel(logging.INFO)
-        logging.getLogger('urllib3').setLevel(logging.INFO)
-    level -= 10 * verbosity
-
-    logging.getLogger('validator').setLevel(level)
-    if verbosity:
-        logging.getLogger().setLevel(logging.DEBUG)
-
-
-def _options() -> object:
+def _options() -> argparse.Namespace:
     """Provide the argparse option set.
 
     Returns:
@@ -80,7 +48,7 @@ def _options() -> object:
                         dest='region',
                         default=os.getenv('AWS_DEFAULT_REGION', 'us-east-1'),
                         help='Region to use.')
-    parser.add_argument('-v', '--verbose',  '--debug',
+    parser.add_argument('-v', '--verbose', '--debug',
                         dest='verbosity',
                         action='count',
                         default=0,
@@ -91,15 +59,15 @@ def _options() -> object:
                         default=os.getenv('FILENAME', ''),
                         help="The filename to use.")
     parser.add_argument('--parameters', '--params', '-i',
-                         dest='parameters',
-                         required=False,
-                         default='',
-                         help='A comma delimited list ie foo=bar,cat=dog')
+                        dest='parameters',
+                        required=False,
+                        default='',
+                        help='A comma delimited list ie foo=bar,cat=dog')
     parser.add_argument('--parameter-file',
-                         dest='parameter_file',
-                         required=False,
-                         default='',
-                         help='A key value dictionary ie {"foo": "bar"}')
+                        dest='parameter_file',
+                        required=False,
+                        default='',
+                        help='A key value dictionary ie {"foo": "bar"}')
     parser.add_argument('--failure',
                         dest='failure',
                         required=False,
@@ -113,19 +81,6 @@ def _options() -> object:
                         action='store_true',
                         help='Enables Termination Protection')
     return parser.parse_args()
-
-
-def load_file(filename) -> str:
-    """Return the content of the file.
-
-    Args:
-        filename (str): Path to the file to load.
-
-    Returns:
-        str: File contents.
-    """
-    with open(filename, encoding='utf8') as file_handler:
-        return file_handler.read()
 
 
 def stack_exist(stackname: str) -> bool:
@@ -148,6 +103,7 @@ def stack_exist(stackname: str) -> bool:
             return False
         raise
 
+
 def find_current_stack(stacks: list) -> dict:
     """Return the current stack filtering out previous deleted stacks.
 
@@ -161,12 +117,12 @@ def find_current_stack(stacks: list) -> dict:
     for stack in stacks:
         if not current:
             current = stack
-        elif  stack['CreationTime'] > current['CreationTime']:
+        elif stack['CreationTime'] > current['CreationTime']:
             current = stack
     return current
 
 
-def get_stack_state(stackname:str) -> str:
+def get_stack_state(stackname: str) -> str:
     """Return the stack state.
 
     Args:
@@ -177,7 +133,6 @@ def get_stack_state(stackname:str) -> str:
     """
     try:
         response = CLOUDFORMATION.describe_stacks(StackName=stackname)
-        # print(json.dumps(response, default=str, indent=2))
         LOG.debug(json.dumps(response, indent=2, default=str))
         stack = find_current_stack(response['Stacks'])
         state = stack['StackStatus']
@@ -191,7 +146,7 @@ def get_stack_state(stackname:str) -> str:
         raise err_msg
 
 
-def get_inprogress_resources(stackname:str) -> list:
+def get_inprogress_resources(stackname: str) -> list:
     """Return a list of resources which are IN_PROGRESS.
 
     Args:
@@ -208,7 +163,7 @@ def get_inprogress_resources(stackname:str) -> list:
     return sorted(result)
 
 
-def get_failed_resources(stackname:str) -> list:
+def get_failed_resources(stackname: str) -> list:
     """Return a list of resources which failed.
 
     Args:
@@ -232,7 +187,7 @@ def get_failed_resources(stackname:str) -> list:
     return result
 
 
-def wait_for_stack(stackname:str) -> None:
+def wait_for_stack(stackname: str) -> None:
     """Wait for the stack to complete.
 
     Args:
@@ -272,7 +227,7 @@ def load_parameters(filename: str) -> list:
 
     Returns:
         list: List of parameter dictionaries in CloudFormation format.
-        
+
     Raises:
         ValueError: If file format is not JSON or YAML.
     """
@@ -287,18 +242,17 @@ def load_parameters(filename: str) -> list:
 
     for key, value in dict_data.items():
         result.append(
-                {
-                    'ParameterKey': key,
-                    'ParameterValue': value
-                }
-
+            {
+                'ParameterKey': key,
+                'ParameterValue': value
+            }
         )
     return result
 
 
 def fill_in_current_parameters(parameters: list, stack: str) -> list:
     """Populate current stack parameters with UsePreviousValue.
-    
+
     Looks at the current stack and adds any parameters not in the provided
     list with UsePreviousValue set to True.
 
@@ -314,7 +268,7 @@ def fill_in_current_parameters(parameters: list, stack: str) -> list:
         current.append(record['ParameterKey'])
     response = CLOUDFORMATION.describe_stacks(StackName=stack)
     for record in response['Stacks'][0].get('Parameters', []):
-        if not record['ParameterKey'] in current:
+        if record['ParameterKey'] not in current:
             parameters.append(
                 {
                     'ParameterKey': record['ParameterKey'],
@@ -328,13 +282,8 @@ def _main() -> None:
     """Main entry point for deploy-stack command."""
     args = _options()
 
-    # set_level(args.verbosity)
-    logging.getLogger().setLevel(logging.INFO)
+    setup_session(args)
 
-    boto3.setup_default_session(
-        profile_name=args.profile,
-        region_name=args.region,
-    )
     global CLOUDFORMATION  # pylint: disable=global-statement
     CLOUDFORMATION = boto3.client('cloudformation')
 
@@ -344,7 +293,7 @@ def _main() -> None:
         'CAPABILITY_AUTO_EXPAND'
     ]
 
-    # cli paramters
+    # cli parameters
     parameters = []
     if args.parameters:
         for parameter in args.parameters.split(','):
@@ -376,7 +325,7 @@ def _main() -> None:
         kwargs['EnableTerminationProtection'] = args.protected
         response = CLOUDFORMATION.create_stack(**kwargs)
 
-    LOG.debug(json.dumps(response, indent=2, default=2))
+    LOG.debug(json.dumps(response, indent=2, default=str))
     wait_for_stack(args.stackname)
 
 

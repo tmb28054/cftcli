@@ -1,10 +1,17 @@
+#!/usr/bin/env python3
 """Shared utilities for cftcli commands."""
 
+import argparse
 import logging
+import os
+
 import boto3
 import diskcache
 
 
+LOG = logging.getLogger()
+
+TIME_DELAY = 3
 CACHETIME = 60 * 60 * 8  # Cache for 8 hours
 CACHE = diskcache.Cache('~/.cftcli')
 
@@ -61,3 +68,42 @@ def get_boto3_client(service: str, profile: str, region: str):
     """
     session = boto3.Session(profile_name=profile, region_name=region)
     return session.client(service)
+
+
+def add_common_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add common CLI arguments shared across commands.
+
+    Adds --profile, --region, and --verbose arguments to the parser.
+
+    Args:
+        parser (argparse.ArgumentParser): The argument parser to add arguments to.
+    """
+    parser.add_argument('--profile', '-p',
+                        required=False,
+                        dest='profile',
+                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', 'default')),
+                        help='The profile to use.')
+    parser.add_argument('--region',
+                        required=False,
+                        dest='region',
+                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', 'us-east-1')),
+                        help='Region to use.')
+    parser.add_argument('-v', '--verbose', '--debug',
+                        dest='verbosity',
+                        action='count',
+                        default=0,
+                        help="Use multiple times to increase logging level")
+
+
+def setup_session(args) -> None:
+    """Set up logging and boto3 default session from parsed arguments.
+
+    Args:
+        args (argparse.Namespace): Parsed command line arguments with
+            verbosity, profile, and region attributes.
+    """
+    set_level(args.verbosity)
+    boto3.setup_default_session(
+        profile_name=args.profile,
+        region_name=args.region,
+    )

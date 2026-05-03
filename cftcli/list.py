@@ -1,82 +1,28 @@
-#!env python
-"""
-    I manage cloudformation stacks
-"""
+#!/usr/bin/env python3
+"""List all CloudFormation stacks in a region."""
 
 
-# python libraries
 import argparse
 import json
-import logging
-import os
-
 
 import boto3
-import diskcache
 from termcolor import colored
 
-
 import cftcli.common
+from cftcli.utils import LOG, CACHE, setup_session, add_common_arguments
 
 
-LOG = logging.getLogger()
-TIME_DELAY = 3
-CACHE = diskcache.Cache('~/.cftcli')
-CACHETIME = 60 * 60 * 8  # Cache for 8 hours
+CLOUDFORMATION = None
 
 
-CLOUDFORMATION = boto3.client('cloudformation')
-
-
-def set_level(verbosity):
-    """Set the logging level based on command line provided verbosity.
-
-    By default, botocore and urllib3 are quiet and only show logging
-    statements at the ERROR level. These logging statements will be shown
-    when verbosity is greater than 1 (-vv, -vvv, etc).
-
-    Args:
-        verbosity (int): 0-based level of verbosity provided on CLI.
-    """
-    level = logging.INFO
-    logging.getLogger('botocore').setLevel(logging.ERROR)
-    logging.getLogger('urllib3').setLevel(logging.ERROR)
-    if verbosity > 1:
-        # enable other loggers
-        logging.getLogger('botocore').setLevel(logging.DEBUG)
-        logging.getLogger('urllib3').setLevel(logging.DEBUG)
-    if verbosity == 1:
-        logging.getLogger('botocore').setLevel(logging.INFO)
-        logging.getLogger('urllib3').setLevel(logging.INFO)
-    level -= 10 * verbosity
-
-    logging.getLogger('validator').setLevel(level)
-    if verbosity:
-        logging.getLogger().setLevel(logging.DEBUG)
-
-
-def _options() -> object:
+def _options() -> argparse.Namespace:
     """Provide the argparse option set.
 
     Returns:
         argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--profile', '-p',
-                        required=False,
-                        dest='profile',
-                        default=os.getenv('AWS_PROFILE', CACHE.get('profile', 'default')),
-                        help='The profile to use.')
-    parser.add_argument('--region',
-                        required=False,
-                        dest='region',
-                        default=os.getenv('AWS_DEFAULT_REGION', CACHE.get('region', 'us-east-1')),
-                        help='Region to use.')
-    parser.add_argument('-v', '--verbose',  '--debug',
-                        dest='verbosity',
-                        action='count',
-                        default=0,
-                        help="Use multiple times to increase logging level")
+    add_common_arguments(parser)
     return parser.parse_args()
 
 
@@ -84,17 +30,11 @@ def _main() -> None:
     """Main entry point for list-stacks command."""
     args = _options()
 
-    set_level(args.verbosity)
-    logging.getLogger().setLevel(logging.DEBUG)
+    setup_session(args)
 
-    boto3.setup_default_session(
-        profile_name=args.profile,
-        region_name=args.region,
-    )
     global CLOUDFORMATION  # pylint: disable=global-statement
     CLOUDFORMATION = boto3.client('cloudformation')
 
-    # blarg
     stacks = []
     response = CLOUDFORMATION.list_stacks()
     while True:
@@ -120,14 +60,13 @@ def _main() -> None:
             response = CLOUDFORMATION.list_stacks(
                 NextToken=response['NextToken']
             )
-
         else:
             break
 
     LOG.debug(json.dumps(stacks, indent=2, default=str))
     cftcli.common.display_table(stacks, 'Stacks')
+    CACHE.close()
 
 
 if __name__ == '__main__':
     _main()
-    CACHE.close()

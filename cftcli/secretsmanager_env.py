@@ -1,4 +1,4 @@
-#!env python
+#!/usr/bin/env python3
 """Read an AWS Secrets Manager secret and output shell export statements."""
 
 import argparse

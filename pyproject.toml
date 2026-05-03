@@ -22,12 +22,12 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "boto3",
-    "halo",
-    "termcolor",
-    "tabulate",
-    "diskcache",
-    "pyyaml",
+    "boto3>=1.26",
+    "halo>=0.0.31",
+    "termcolor>=2.0",
+    "tabulate>=0.9",
+    "diskcache>=5.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
