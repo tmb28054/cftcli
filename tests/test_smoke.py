@@ -159,3 +159,70 @@ def test_detail_get_resources_happy_path(mock_cf):
     }
     result = _get_resources('test')
     assert 'Bucket' in result
+
+
+@pytest.mark.smoke
+@patch('cftcli.attach.CACHE')
+@patch('cftcli.attach.boto3')
+@patch('cftcli.attach.setup_session')
+@patch('cftcli.attach._options')
+def test_attach_initializes_deploy_cloudformation(mock_opts, mock_setup,
+                                                   mock_boto3, mock_cache):
+    """Smoke: attach._main() sets deploy.CLOUDFORMATION before calling wait_for_stack.
+
+    This catches the regression where attach called wait_for_stack but
+    deploy.CLOUDFORMATION was None, causing an AttributeError.
+    """
+    import cftcli.attach
+    import cftcli.deploy
+
+    mock_opts.return_value = MagicMock(
+        stackname='test-stack', profile='default', region='us-east-1', verbosity=0,
+    )
+    mock_cf = MagicMock()
+    mock_boto3.client.return_value = mock_cf
+    # Make wait_for_stack exit immediately by returning a completed state
+    mock_cf.describe_stacks.return_value = {
+        'Stacks': [{'StackStatus': 'CREATE_COMPLETE', 'CreationTime': datetime(2024, 1, 1)}],
+    }
+    mock_cf.describe_stack_resources.return_value = {'StackResources': []}
+
+    cftcli.deploy.CLOUDFORMATION = None  # Reset to simulate fresh import
+    cftcli.attach._main()
+
+    # The critical assertion: deploy.CLOUDFORMATION must not be None
+    assert cftcli.deploy.CLOUDFORMATION is not None
+    assert cftcli.deploy.CLOUDFORMATION is mock_cf
+
+
+@pytest.mark.smoke
+@patch('cftcli.destroy.CACHE')
+@patch('cftcli.destroy.boto3')
+@patch('cftcli.destroy.setup_session')
+@patch('cftcli.destroy._options')
+def test_destroy_initializes_deploy_cloudformation(mock_opts, mock_setup,
+                                                    mock_boto3, mock_cache):
+    """Smoke: destroy._main() sets deploy.CLOUDFORMATION before calling wait_for_stack.
+
+    This catches the regression where destroy called wait_for_stack but
+    deploy.CLOUDFORMATION was None, causing an AttributeError.
+    """
+    import cftcli.destroy
+    import cftcli.deploy
+
+    mock_opts.return_value = MagicMock(
+        stackname='test-stack', profile='default', region='us-east-1',
+        verbosity=0, role=None,
+    )
+    mock_cf = MagicMock()
+    mock_boto3.client.return_value = mock_cf
+    mock_cf.describe_stacks.return_value = {
+        'Stacks': [{'StackStatus': 'DELETE_COMPLETE', 'CreationTime': datetime(2024, 1, 1)}],
+    }
+    mock_cf.describe_stack_resources.return_value = {'StackResources': []}
+
+    cftcli.deploy.CLOUDFORMATION = None  # Reset to simulate fresh import
+    cftcli.destroy._main()
+
+    assert cftcli.deploy.CLOUDFORMATION is not None
+    assert cftcli.deploy.CLOUDFORMATION is mock_cf

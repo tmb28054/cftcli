@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed `attach-stack` and `delete-stack` crashing because `deploy.CLOUDFORMATION` was never initialized when called from other modules
 
+### Added
+
+- Smoke tests verifying `attach` and `destroy` initialize `deploy.CLOUDFORMATION` before calling `wait_for_stack`
+
 ## [2.11.1] - 2026-05-03
 
 ### Changed
