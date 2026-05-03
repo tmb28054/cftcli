@@ -8,6 +8,7 @@ import os
 
 import boto3
 
+import cftcli.deploy
 from cftcli.deploy import wait_for_stack
 from cftcli.utils import CACHE, setup_session, add_common_arguments
 
@@ -34,10 +35,7 @@ def _main() -> None:
 
     setup_session(args)
 
-    boto3.setup_default_session(
-        profile_name=args.profile,
-        region_name=args.region,
-    )
+    cftcli.deploy.CLOUDFORMATION = boto3.client('cloudformation')
 
     wait_for_stack(args.stackname)
     CACHE.close()

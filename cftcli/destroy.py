@@ -8,6 +8,7 @@ import json
 
 import boto3
 
+import cftcli.deploy
 from cftcli.deploy import wait_for_stack
 from cftcli.utils import LOG, CACHE, setup_session, add_stack_argument, add_common_arguments
 
@@ -39,6 +40,7 @@ def _main() -> None:
 
     global CLOUDFORMATION  # pylint: disable=global-statement
     CLOUDFORMATION = boto3.client('cloudformation')
+    cftcli.deploy.CLOUDFORMATION = CLOUDFORMATION
 
     kwargs: dict = {
         'StackName': args.stackname,
