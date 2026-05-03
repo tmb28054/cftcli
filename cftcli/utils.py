@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Shared utilities for cftcli commands."""
 
+from __future__ import annotations
+
 import argparse
 import logging
 import os
@@ -55,7 +57,7 @@ def load_file(filename: str) -> str:
         return file_handler.read()
 
 
-def get_boto3_client(service: str, profile: str, region: str):
+def get_boto3_client(service: str, profile: str, region: str) -> boto3.client:
     """Create a boto3 client with the specified configuration.
 
     Args:
@@ -95,7 +97,20 @@ def add_common_arguments(parser: argparse.ArgumentParser) -> None:
                         help="Use multiple times to increase logging level")
 
 
-def setup_session(args) -> None:
+def add_stack_argument(parser: argparse.ArgumentParser) -> None:
+    """Add the --stack argument to a parser.
+
+    Args:
+        parser (argparse.ArgumentParser): The argument parser to add the argument to.
+    """
+    parser.add_argument('--stack', '-s',
+                        dest='stackname',
+                        required=True,
+                        default='',
+                        help='The Stack Name to use.')
+
+
+def setup_session(args: argparse.Namespace) -> None:
     """Set up logging and boto3 default session from parsed arguments.
 
     Args:

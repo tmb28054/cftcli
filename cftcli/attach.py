@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Attach to a CloudFormation stack which is under change."""
 
+from __future__ import annotations
 
 import argparse
 import os
 
+import boto3
+
 from cftcli.deploy import wait_for_stack
 from cftcli.utils import CACHE, setup_session, add_common_arguments
-
-import boto3
 
 
 def _options() -> argparse.Namespace:

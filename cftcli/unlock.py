@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Remove stack policy restrictions and termination protection."""
 
+from __future__ import annotations
 
 import argparse
 import json
 
 import boto3
 
-from cftcli.utils import LOG, CACHE, setup_session, add_common_arguments
+from cftcli.utils import LOG, CACHE, setup_session, add_stack_argument, add_common_arguments
 
 
 CLOUDFORMATION = None
@@ -18,9 +19,9 @@ UNLOCK_POLICY = {
             'Effect': 'Allow',
             'Action': 'Update:*',
             'Principal': '*',
-            'Resource': '*'
-        }
-    ]
+            'Resource': '*',
+        },
+    ],
 }
 
 
@@ -31,11 +32,7 @@ def _options() -> argparse.Namespace:
         argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--stack', '-s',
-                        dest='stackname',
-                        required=True,
-                        default='',
-                        help='The Stack Name to use.')
+    add_stack_argument(parser)
     add_common_arguments(parser)
     return parser.parse_args()
 
@@ -58,7 +55,7 @@ def _main() -> None:
 
     response = CLOUDFORMATION.update_termination_protection(
         StackName=args.stackname,
-        EnableTerminationProtection=False
+        EnableTerminationProtection=False,
     )
     LOG.debug(json.dumps(response, indent=2, default=str))
     print(f'Termination Protection for {args.stackname} disabled')

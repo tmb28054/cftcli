@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Display current CloudFormation stack policy."""
 
+from __future__ import annotations
 
 import argparse
 import json
 
 import boto3
 
-from cftcli.utils import LOG, CACHE, setup_session, add_common_arguments
+from cftcli.utils import LOG, CACHE, setup_session, add_stack_argument, add_common_arguments
 
 
 CLOUDFORMATION = None
@@ -20,11 +21,7 @@ def _options() -> argparse.Namespace:
         argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--stack', '-s',
-                        dest='stackname',
-                        required=True,
-                        default='',
-                        help='The Stack Name to use.')
+    add_stack_argument(parser)
     add_common_arguments(parser)
     return parser.parse_args()
 

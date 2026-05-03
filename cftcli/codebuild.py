@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Execute CodeBuild projects."""
 
+from __future__ import annotations
 
 import argparse
-import logging
 import os
 import time
 from urllib.parse import urlparse
 
 import boto3
+from botocore.exceptions import ClientError
 from halo import Halo
 from termcolor import colored
 
@@ -79,7 +80,7 @@ def _options() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def save_cache(args) -> None:
+def save_cache(args: argparse.Namespace) -> None:
     """Write arguments to cache.
 
     Args:
@@ -96,7 +97,7 @@ def save_cache(args) -> None:
     CACHE.add('bucket_path', args.bucket_path, CACHETIME)
 
 
-def watch_build(build_id: str):
+def watch_build(build_id: str) -> dict:
     """Watch the build and wait for it to finish.
 
     Args:
@@ -138,7 +139,7 @@ def watch_build(build_id: str):
     client = boto3.client('logs')
     response = client.get_log_events(
         logGroupName=s3_arn[6],
-        logStreamName=s3_arn[8]
+        logStreamName=s3_arn[8],
     )
     for event in response['events']:
         print(
@@ -177,7 +178,7 @@ def download_artifact(s3_arn: str, filename: str) -> str:
         key = obj.path.lstrip('/')
         S3CLIENT.download_file(bucket, key, filename)
         return f"Download of {filename} {colored('SUCCESS', 'green')}"
-    except Exception as err:
+    except (ClientError, OSError) as err:
         LOG.debug('failed to download %s: %s', filename, err)
 
     return f"Download of {s3_url} {colored('FAILED', 'red')}"
@@ -213,7 +214,7 @@ def _main() -> None:
             'overrideArtifactName': True,
             'artifactIdentifier': 'NONE',
             'path': args.bucket_path,
-            'name': f'{args.codebuild}.zip'
+            'name': f'{args.codebuild}.zip',
         }
 
     if args.src_artifact:
@@ -227,7 +228,7 @@ def _main() -> None:
         print(
             download_artifact(
                 build['artifacts']['location'],
-                args.dst_artifact
+                args.dst_artifact,
             )
         )
     CACHE.close()

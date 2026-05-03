@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Display detailed CloudFormation stack information."""
 
+from __future__ import annotations
 
 import argparse
 import json
@@ -41,7 +42,7 @@ def _get_events(stackname: str) -> dict:
     Returns:
         dict: Dictionary of events keyed by PhysicalResourceId.
     """
-    events = {}
+    events: dict = {}
     response = CLOUDFORMATION.describe_stack_events(StackName=stackname)
     while True:
         for event in response['StackEvents']:
@@ -52,7 +53,7 @@ def _get_events(stackname: str) -> dict:
             break
         response = CLOUDFORMATION.describe_stack_events(
             StackName=stackname,
-            NextToken=response['NextToken']
+            NextToken=response['NextToken'],
         )
     return events
 
@@ -67,9 +68,9 @@ def _get_resources(stackname: str) -> dict:
         dict: Dictionary of resources keyed by LogicalResourceId.
     """
     response = CLOUDFORMATION.describe_stack_resources(
-        StackName=stackname
+        StackName=stackname,
     )
-    resources = {}
+    resources: dict = {}
     while True:
         for resource in response['StackResources']:
             name = resource['LogicalResourceId']
@@ -79,7 +80,7 @@ def _get_resources(stackname: str) -> dict:
             break
         response = CLOUDFORMATION.describe_stack_resources(
             StackName=stackname,
-            NextToken=response['NextToken']
+            NextToken=response['NextToken'],
         )
     return resources
 
@@ -99,10 +100,10 @@ def _display_resources(resources: dict) -> None:
         'ResourceStatusReason',
         'Description',
     ]
-    detail = []
-    header = []
+    detail: list[list] = []
+    header: list[str] = []
     for _, resource in resources.items():
-        record = []
+        record: list[str] = []
         if resource['ResourceStatus'] == 'DELETE_COMPLETE':
             continue
         for key, value in resource.items():
@@ -131,7 +132,7 @@ def _display_resources(resources: dict) -> None:
         tabulate(
             detail,
             header,
-            tablefmt="grid"
+            tablefmt="grid",
         )
     )
 
@@ -142,14 +143,14 @@ def _display_events(stackname: str) -> None:
     Args:
         stackname (str): Name of the stack.
     """
-    detail = []
-    header = []
+    detail: list[list] = []
+    header: list[str] = []
     display_keys = ['LogicalResourceId', 'PhysicalResourceId', 'ResourceType',
                     'Timestamp', 'ResourceStatus', 'ResourceStatusReason',
                     'ResourceProperties']
     resources = _get_resources(stackname)
     for _, event in _get_events(stackname).items():
-        event_detail = []
+        event_detail: list[str] = []
         if event['ResourceStatus'] == 'DELETE_COMPLETE':
             continue
         for key, value in event.items():
@@ -177,24 +178,24 @@ def _display_events(stackname: str) -> None:
         tabulate(
             detail,
             header,
-            tablefmt="grid"
+            tablefmt="grid",
         )
     )
     _display_resources(resources)
 
 
-def _display_stack(stackname) -> None:
+def _display_stack(stackname: str) -> None:
     """Display the stack data.
 
     Args:
         stackname (str): The stack name to display.
     """
-    detail = []
+    detail: list[list] = []
     response = CLOUDFORMATION.describe_stacks(StackName=stackname)
     for key, value in response['Stacks'][0].items():
         if not value:
             continue
-        if type(value) in [dict, list]:
+        if isinstance(value, (dict, list)):
             value = json.dumps(value, default=str, indent=2)
         else:
             value = str(value)
@@ -206,7 +207,7 @@ def _display_stack(stackname) -> None:
         detail.append(
             [
                 colored(key, attrs=['bold']),
-                value
+                value,
             ]
         )
 
@@ -215,7 +216,7 @@ def _display_stack(stackname) -> None:
     print(
         tabulate(
             detail,
-            tablefmt="grid"
+            tablefmt="grid",
         )
     )
     _display_events(stackname)

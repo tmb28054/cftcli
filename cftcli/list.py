@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """List all CloudFormation stacks in a region."""
 
+from __future__ import annotations
 
 import argparse
 import json
@@ -35,7 +36,7 @@ def _main() -> None:
     global CLOUDFORMATION  # pylint: disable=global-statement
     CLOUDFORMATION = boto3.client('cloudformation')
 
-    stacks = []
+    stacks: list[dict] = []
     response = CLOUDFORMATION.list_stacks()
     while True:
         for stack in response['StackSummaries']:
@@ -58,7 +59,7 @@ def _main() -> None:
 
         if 'NextToken' in response:
             response = CLOUDFORMATION.list_stacks(
-                NextToken=response['NextToken']
+                NextToken=response['NextToken'],
             )
         else:
             break

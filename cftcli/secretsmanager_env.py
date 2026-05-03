@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """Read an AWS Secrets Manager secret and output shell export statements."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys
+
 import boto3
 
 
-def get_secret(secret_arn: str, profile: str, region: str) -> dict:
+def get_secret(secret_arn: str, profile: str | None, region: str | None) -> dict:
     """Retrieve and parse a secret from AWS Secrets Manager.
 
     Args:
         secret_arn (str): The ARN of the secret to retrieve.
-        profile (str): AWS profile name.
-        region (str): AWS region name.
+        profile (str | None): AWS profile name.
+        region (str | None): AWS region name.
 
     Returns:
         dict: Key/value pairs from the secret.
@@ -38,7 +41,7 @@ def _options() -> argparse.Namespace:
         argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser(
-        description='Output AWS Secrets Manager secret as shell export statements.'
+        description='Output AWS Secrets Manager secret as shell export statements.',
     )
     parser.add_argument('secret_arn',
                         help='The ARN of the secret to retrieve.')

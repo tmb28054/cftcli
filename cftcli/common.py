@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Shared display utilities for cftcli commands."""
 
+from __future__ import annotations
 
 import json
 import logging
@@ -13,18 +14,18 @@ from termcolor import colored
 LOG = logging.getLogger()
 
 
-def display_table(records, title='Resources') -> None:
+def display_table(records: list[dict], title: str = 'Resources') -> None:
     """Display records in a formatted table.
 
     Args:
-        records (list): List of dictionaries containing record data.
+        records (list[dict]): List of dictionaries containing record data.
         title (str, optional): Title for the table. Defaults to 'Resources'.
     """
     result = []
-    headers = []
+    headers: list[str] = []
     for record in records:
         if not headers:
-            headers = record.keys()
+            headers = list(record.keys())
         row = []
         for _, value in record.items():
             if len(value) > 50:
@@ -39,6 +40,6 @@ def display_table(records, title='Resources') -> None:
         tabulate(
             result,
             headers,
-            tablefmt="grid"
+            tablefmt="grid",
         )
     )

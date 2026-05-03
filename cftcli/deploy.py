@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """Deploy (create or update) CloudFormation stacks."""
 
+from __future__ import annotations
 
 import argparse
 import json
-import logging
 import os
 import time
-import yaml
 
+import yaml
 import boto3
 from halo import Halo
 from termcolor import colored
 
 import cftcli.common
 from cftcli.utils import (
-    LOG, TIME_DELAY, load_file, set_level, setup_session,
+    LOG, TIME_DELAY, load_file, setup_session,
 )
 
 
@@ -104,16 +104,16 @@ def stack_exist(stackname: str) -> bool:
         raise
 
 
-def find_current_stack(stacks: list) -> dict:
+def find_current_stack(stacks: list[dict]) -> dict:
     """Return the current stack filtering out previous deleted stacks.
 
     Args:
-        stacks (list): List of stack dictionaries.
+        stacks (list[dict]): List of stack dictionaries.
 
     Returns:
         dict: The most recently created stack.
     """
-    current = {}
+    current: dict = {}
     for stack in stacks:
         if not current:
             current = stack
@@ -140,39 +140,39 @@ def get_stack_state(stackname: str) -> str:
         if resources:
             return f"{state} - {', '.join(resources)}"
         return state
-    except Exception as err_msg:
+    except Exception as err_msg:  # pylint: disable=broad-exception-caught
         if f'Stack with id {stackname} does not exist' in str(err_msg):
             return 'DELETE_COMPLETE'
         raise err_msg
 
 
-def get_inprogress_resources(stackname: str) -> list:
+def get_inprogress_resources(stackname: str) -> list[str]:
     """Return a list of resources which are IN_PROGRESS.
 
     Args:
         stackname (str): Name of the stack to build the list from.
 
     Returns:
-        list: Sorted list of logical resource IDs with IN_PROGRESS status.
+        list[str]: Sorted list of logical resource IDs with IN_PROGRESS status.
     """
-    result = []
+    result: list[str] = []
     response = CLOUDFORMATION.describe_stack_resources(StackName=stackname)
     for record in response['StackResources']:
-        if 'IN_PROGRESS'.lower() in record['ResourceStatus'].lower():
+        if 'in_progress' in record['ResourceStatus'].lower():
             result.append(record['LogicalResourceId'])
     return sorted(result)
 
 
-def get_failed_resources(stackname: str) -> list:
+def get_failed_resources(stackname: str) -> list[dict]:
     """Return a list of resources which failed.
 
     Args:
         stackname (str): Name of the stack to build the list from.
 
     Returns:
-        list: List of dictionaries containing failed resource details.
+        list[dict]: List of dictionaries containing failed resource details.
     """
-    result = []
+    result: list[dict] = []
     response = CLOUDFORMATION.describe_stack_resources(StackName=stackname)
     for record in response['StackResources']:
         LOG.debug(json.dumps(record, indent=2, default=str))
@@ -219,20 +219,20 @@ def wait_for_stack(stackname: str) -> None:
     print(f'{stackname} is {state}')
 
 
-def load_parameters(filename: str) -> list:
+def load_parameters(filename: str) -> list[dict]:
     """Load parameters from a JSON or YAML file.
 
     Args:
         filename (str): Path to the parameter file.
 
     Returns:
-        list: List of parameter dictionaries in CloudFormation format.
+        list[dict]: List of parameter dictionaries in CloudFormation format.
 
     Raises:
         ValueError: If file format is not JSON or YAML.
     """
     file_data = load_file(filename)
-    result = []
+    result: list[dict] = []
     if filename.lower().endswith('yaml') or filename.lower().endswith('yml'):
         dict_data = yaml.safe_load(file_data)
     elif filename.lower().endswith('json'):
@@ -244,35 +244,33 @@ def load_parameters(filename: str) -> list:
         result.append(
             {
                 'ParameterKey': key,
-                'ParameterValue': value
+                'ParameterValue': value,
             }
         )
     return result
 
 
-def fill_in_current_parameters(parameters: list, stack: str) -> list:
+def fill_in_current_parameters(parameters: list[dict], stack: str) -> list[dict]:
     """Populate current stack parameters with UsePreviousValue.
 
     Looks at the current stack and adds any parameters not in the provided
     list with UsePreviousValue set to True.
 
     Args:
-        parameters (list): CloudFormation parameters list.
+        parameters (list[dict]): CloudFormation parameters list.
         stack (str): Stack name to be updated.
 
     Returns:
-        list: Updated CloudFormation parameters list.
+        list[dict]: Updated CloudFormation parameters list.
     """
-    current = []
-    for record in parameters:
-        current.append(record['ParameterKey'])
+    current = [record['ParameterKey'] for record in parameters]
     response = CLOUDFORMATION.describe_stacks(StackName=stack)
     for record in response['Stacks'][0].get('Parameters', []):
         if record['ParameterKey'] not in current:
             parameters.append(
                 {
                     'ParameterKey': record['ParameterKey'],
-                    'UsePreviousValue': True
+                    'UsePreviousValue': True,
                 }
             )
     return parameters
@@ -290,18 +288,18 @@ def _main() -> None:
     capabilities = [
         'CAPABILITY_IAM',
         'CAPABILITY_NAMED_IAM',
-        'CAPABILITY_AUTO_EXPAND'
+        'CAPABILITY_AUTO_EXPAND',
     ]
 
     # cli parameters
-    parameters = []
+    parameters: list[dict] = []
     if args.parameters:
         for parameter in args.parameters.split(','):
             name, value = parameter.split('=')
             parameters.append(
                 {
                     'ParameterKey': name,
-                    'ParameterValue': value
+                    'ParameterValue': value,
                 }
             )
     if args.parameter_file:

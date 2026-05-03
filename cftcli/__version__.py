@@ -1,5 +1,7 @@
 """Version information for cftcli package."""
 
+from __future__ import annotations
+
 import os
 
 
@@ -11,7 +13,7 @@ def get_version() -> str:
             or 'unknown' if not found.
     """
     changelog = os.path.join(os.path.dirname(__file__), '..', 'CHANGELOG.md')
-    with open(changelog) as f:
+    with open(changelog, encoding='utf8') as f:
         for line in f:
             if line.startswith('## [') and 'unreleased' not in line.lower():
                 return line.split(']')[0].split('[')[1]

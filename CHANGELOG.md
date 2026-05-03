@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Added `from __future__ import annotations` to all source modules
+- Added type hints to all function signatures (parameters and return types)
+- Replaced `type(value) in [dict, list]` with `isinstance()` in `detail.py`
+- Narrowed broad `except Exception` to `except (ClientError, OSError)` in `codebuild.py`
+- Added `add_stack_argument()` helper to `utils.py` to reduce duplicate `--stack` argument code
+- Fixed import ordering in `attach.py` (third-party before first-party)
+- Removed unused `import logging` from `deploy.py` and `codebuild.py`
+- Removed unused `set_level` import from `deploy.py`
+- Fixed `open()` without encoding in `__version__.py`
+
+### Added
+
+- Smoke tests for all modules (`pytest -m smoke`), 12 tests
+- Tests for all `_main()` entry points and `_options()` parsers
+- Test suite expanded from 71 to 113 tests, coverage from 61% to 86%
+- Registered `smoke` marker in `pytest.ini`
+- Added "Testing" section to `README.md`
+
 ## [2.11.0] - 2026-05-02
 
 ### Changed

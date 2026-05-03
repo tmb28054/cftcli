@@ -49,6 +49,21 @@ Complete documentation is available in the [docs/](docs/) folder:
 - [API Reference](docs/api.md)
 - [AI Assistant Prompt](docs/prompt.md)
 
+## Testing
+
+```bash
+pip install -e ".[test]"
+
+# Run all tests
+python3 -m pytest
+
+# Run smoke tests only
+python3 -m pytest -m smoke
+
+# Run with coverage threshold
+python3 -m pytest --cov=cftcli --cov-fail-under=80
+```
+
 ## License
 
 Apache License 2.0

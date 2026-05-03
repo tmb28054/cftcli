@@ -32,7 +32,11 @@ class TestCodebuild(unittest.TestCase):
     @patch('cftcli.codebuild.S3CLIENT')
     def test_download_artifact_failure(self, mock_s3):
         """Test failed artifact download."""
-        mock_s3.download_file.side_effect = Exception('Download failed')
+        from botocore.exceptions import ClientError
+        mock_s3.download_file.side_effect = ClientError(
+            {'Error': {'Code': '404', 'Message': 'Not Found'}},
+            'GetObject',
+        )
         arn = 'arn:aws:s3:::bucket/file.zip'
         result = download_artifact(arn, 'output.zip')
         self.assertIn('FAILED', result)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """List all CodePipeline pipelines in a region."""
 
+from __future__ import annotations
 
 import argparse
 import json
@@ -63,20 +64,20 @@ def _main() -> None:
     global INTERFACE  # pylint: disable=global-statement
     INTERFACE = boto3.client('codepipeline')
 
-    pipelines = []
+    pipelines: list[dict] = []
     response = INTERFACE.list_pipelines()
     while True:
         for pipeline in response['pipelines']:
             color = STATE_COLOR[_get_pipeline_state(pipeline['name'])]
             pipelines += [
                 {
-                    'Name': colored(pipeline['name'], color)
+                    'Name': colored(pipeline['name'], color),
                 }
             ]
 
         if 'NextToken' in response:
             response = INTERFACE.list_pipelines(
-                NextToken=response['NextToken']
+                NextToken=response['NextToken'],
             )
         else:
             break

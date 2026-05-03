@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Apply stack policy and termination protection to CloudFormation stacks."""
 
+from __future__ import annotations
 
 import argparse
 import json
 
 import boto3
 
-from cftcli.utils import LOG, CACHE, setup_session, add_common_arguments
+from cftcli.utils import LOG, CACHE, setup_session, add_stack_argument, add_common_arguments
 
 
 CLOUDFORMATION = None
@@ -18,15 +19,15 @@ LOCK_POLICY = {
             'Effect': 'Allow',
             'Action': 'Update:*',
             'Principal': '*',
-            'Resource': '*'
+            'Resource': '*',
         },
         {
             'Effect': 'Deny',
             'Action': 'Update:*',
             'Principal': '*',
-            'Resource': '*'
-        }
-    ]
+            'Resource': '*',
+        },
+    ],
 }
 
 
@@ -37,11 +38,7 @@ def _options() -> argparse.Namespace:
         argparse.Namespace: Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--stack', '-s',
-                        dest='stackname',
-                        required=True,
-                        default='',
-                        help='The Stack Name to use.')
+    add_stack_argument(parser)
     add_common_arguments(parser)
     return parser.parse_args()
 
@@ -57,14 +54,14 @@ def _main() -> None:
 
     response = CLOUDFORMATION.set_stack_policy(
         StackName=args.stackname,
-        StackPolicyBody=json.dumps(LOCK_POLICY)
+        StackPolicyBody=json.dumps(LOCK_POLICY),
     )
     LOG.debug(json.dumps(response, indent=2, default=str))
     print(f'Policy lock applied for {args.stackname}')
 
     response = CLOUDFORMATION.update_termination_protection(
         StackName=args.stackname,
-        EnableTerminationProtection=True
+        EnableTerminationProtection=True,
     )
     LOG.debug(json.dumps(response, indent=2, default=str))
     print(f'Termination Protection for {args.stackname} enabled')
