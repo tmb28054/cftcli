@@ -47,6 +47,7 @@ Complete documentation is available in the [docs/](docs/) folder:
 - [Configuration](docs/configuration.md)
 - [Examples](docs/examples.md)
 - [API Reference](docs/api.md)
+- [AI Assistant Prompt](docs/prompt.md)
 
 ## License
 

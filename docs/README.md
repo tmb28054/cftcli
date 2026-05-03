@@ -11,6 +11,7 @@ Complete documentation for the CloudFormation CLI tools.
 - **[configuration.md](configuration.md)** - Configuration options
 - **[examples.md](examples.md)** - Usage examples
 - **[api.md](api.md)** - API reference
+- **[prompt.md](prompt.md)** - AI assistant prompt for working with this project
 
 ## Building Documentation
 

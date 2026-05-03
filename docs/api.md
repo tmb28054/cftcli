@@ -35,10 +35,25 @@ Create a boto3 client.
 
 **Returns:** Configured boto3 client
 
+**`add_common_arguments(parser: argparse.ArgumentParser) -> None`**
+
+Add the standard `--profile`, `--region`, and `--verbose` arguments to a parser.
+
+**Parameters:**
+- `parser`: The argument parser to add arguments to
+
+**`setup_session(args) -> None`**
+
+Set up logging and boto3 default session from parsed arguments.
+
+**Parameters:**
+- `args`: Parsed argparse namespace with `verbosity`, `profile`, and `region` attributes
+
 #### Constants
 
+- `TIME_DELAY`: Polling interval in seconds (3)
 - `CACHETIME`: Cache expiration time (8 hours)
-- `CACHE`: Disk cache instance
+- `CACHE`: Disk cache instance (`~/.cftcli/`)
 
 ### cftcli.deploy
 

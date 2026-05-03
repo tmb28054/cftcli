@@ -10,6 +10,7 @@ CloudFormation CLI tools for managing AWS CloudFormation stacks.
 - [Configuration](configuration.md)
 - [Examples](examples.md)
 - [API Reference](api.md)
+- [AI Assistant Prompt](prompt.md)
 
 ## Overview
 

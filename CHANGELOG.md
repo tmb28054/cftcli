@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Created missing `scripts/test.sh` referenced by `.gitlab-ci.yml`
 - Added tests for `attach.py`, `destroy.py`, `detail.py`, `list.py`, `lock.py`, `unlock.py`, and `policy.py`
 - Test suite expanded from 41 to 71 tests with all modules now covered
+- Added `docs/prompt.md` — AI assistant prompt file documenting tooling, workflows, and conventions
 
 ## [2.10.1] - 2026-04-14
 
