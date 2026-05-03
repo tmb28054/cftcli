@@ -10,10 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed `attach-stack` and `delete-stack` crashing because `deploy.CLOUDFORMATION` was never initialized when called from other modules
+- Fixed `UnboundLocalError` in `codebuild.watch_build` when a build completes before the first poll (`phase` was never assigned)
 
 ### Added
 
 - Smoke tests verifying `attach` and `destroy` initialize `deploy.CLOUDFORMATION` before calling `wait_for_stack`
+- Tests for `deploy.wait_for_stack` — polling loop, success path, failure/rollback display, and DELETE_COMPLETE handling
+- Tests for `deploy.get_stack_state` — plain status return and unknown exception re-raise
+- Tests for `codebuild.watch_build` — already-complete, polling, failed, and early-exit paths
+- Tests for `detail._display_events`, `_display_stack`, and `_display_resources` — event/resource rendering, status coloring, long-value wrapping, and DELETE_COMPLETE filtering
+- Test suite expanded from 115 to 136 tests, coverage from 87% to 97%
 
 ## [2.11.1] - 2026-05-03
 

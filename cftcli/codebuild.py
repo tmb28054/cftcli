@@ -107,6 +107,7 @@ def watch_build(build_id: str) -> dict:
         dict: The final build record.
     """
     build = CODEBUILD.batch_get_builds(ids=[build_id])['builds'][0]
+    phase = build['currentPhase']
 
     while not build['buildComplete']:
         status = build['buildStatus']
